@@ -1,5 +1,8 @@
 const INTERVAL = 60_000;
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const APP_URL =
+  process.env.ENGINE_BASE_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "http://localhost:3000";
 const WORKER_SECRET = process.env.WORKER_SECRET || "";
 
 async function tick() {
@@ -12,6 +15,10 @@ async function tick() {
           : {}),
       },
     });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Engine tick failed with ${res.status}: ${body}`);
+    }
     const data = await res.json();
     const timestamp = new Date().toISOString();
     console.log(

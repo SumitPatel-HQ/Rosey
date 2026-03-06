@@ -99,6 +99,21 @@ export function parseWorkflow(workflow: WorkflowJSON): ParsedWorkflow {
     throw new Error("Workflow must include a start node");
   }
 
+  for (const node of nodesById.values()) {
+    if (node.normalizedType !== "condition") continue;
+
+    const outgoing = outgoingBySource.get(node.id) || [];
+    const branchKeys = new Set(
+      outgoing.map((edge) => edge.conditionKey).filter(Boolean)
+    );
+
+    if (!branchKeys.has("yes") || !branchKeys.has("no")) {
+      throw new Error(
+        `Condition node ${node.id} must define both "yes" and "no" branches`
+      );
+    }
+  }
+
   return {
     startNodeId: startNode.id,
     nodesById,

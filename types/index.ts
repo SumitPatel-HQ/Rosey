@@ -27,6 +27,7 @@ export interface Campaign {
   status: "draft" | "active" | "paused" | "completed";
   gmail_label_id: string | null;
   created_at: string;
+  product?: Product;
 }
 
 export interface CampaignLead {
@@ -40,6 +41,8 @@ export interface CampaignLead {
   next_action_time: string;
   replied: boolean;
   thread_id: string | null;
+  last_message_id: string | null;
+  thread_subject: string | null;
   created_at: string;
   lead?: Lead;
   campaign?: Campaign;

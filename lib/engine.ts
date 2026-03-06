@@ -15,6 +15,52 @@ function getSupabase() {
   );
 }
 
+function getCampaignLabelName(productName: string, campaignName: string): string {
+  return `${productName} - ${campaignName}`;
+}
+
+async function ensureCampaignLabel(
+  supabase: ReturnType<typeof getSupabase>,
+  campaign: Campaign,
+  productName: string
+): Promise<string | null> {
+  const { getOrCreateLabel } = await import("@/lib/gmail");
+  const labelName = getCampaignLabelName(productName, campaign.name);
+  const labelId = await getOrCreateLabel(labelName);
+
+  if (campaign.gmail_label_id !== labelId) {
+    await supabase
+      .from("campaigns")
+      .update({ gmail_label_id: labelId })
+      .eq("id", campaign.id);
+    campaign.gmail_label_id = labelId;
+  }
+
+  return labelId;
+}
+
+async function claimCampaignLead(
+  supabase: ReturnType<typeof getSupabase>,
+  campaignLeadId: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("campaign_leads")
+    .update({
+      status: "active",
+      last_action_time: new Date().toISOString(),
+    })
+    .eq("id", campaignLeadId)
+    .in("status", ["queued", "waiting"])
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data?.id);
+}
+
 async function logAction(
   supabase: ReturnType<typeof getSupabase>,
   campaignLeadId: string,
@@ -44,6 +90,55 @@ async function markFailed(
     .eq("id", campaignLeadId);
 
   await logAction(supabase, campaignLeadId, "error", "failed", { reason });
+}
+
+function isMissingColumnError(error: unknown, columnName: string): boolean {
+  if (!error || typeof error !== "object") return false;
+  const message =
+    ("message" in error && typeof error.message === "string" ? error.message : "") ||
+    ("details" in error && typeof error.details === "string" ? error.details : "");
+  return message.includes(columnName);
+}
+
+async function persistThreadState(
+  supabase: ReturnType<typeof getSupabase>,
+  campaignLeadId: string,
+  values: {
+    threadId: string;
+    lastMessageId: string | undefined;
+    threadSubject: string | undefined;
+  }
+) {
+  const fullUpdate = {
+    thread_id: values.threadId,
+    last_message_id: values.lastMessageId || null,
+    thread_subject: values.threadSubject || null,
+  };
+
+  const { error } = await supabase
+    .from("campaign_leads")
+    .update(fullUpdate)
+    .eq("id", campaignLeadId);
+
+  if (!error) return;
+
+  if (
+    isMissingColumnError(error, "last_message_id") ||
+    isMissingColumnError(error, "thread_subject")
+  ) {
+    const fallback = await supabase
+      .from("campaign_leads")
+      .update({ thread_id: values.threadId })
+      .eq("id", campaignLeadId);
+
+    if (fallback.error) {
+      throw fallback.error;
+    }
+
+    return;
+  }
+
+  throw error;
 }
 
 function getWaitDelayMs(node: ParsedWorkflowNode): number {
@@ -84,8 +179,12 @@ interface CampaignExecutionContext {
   campaign: Campaign;
   campaignLead: CampaignLead;
   lead: Lead;
+  productName: string;
   productDescription?: string;
   threadId?: string;
+  lastMessageId?: string;
+  threadSubject?: string;
+  labelId?: string | null;
   replied: boolean;
 }
 
@@ -98,53 +197,60 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
     const subjectPrompt = getPromptText(node, "subject_prompt");
     const bodyPrompt = getPromptText(node, "body_prompt");
     let threadId = context.threadId;
+    let threadSubject = context.threadSubject;
+    let lastMessageId = context.lastMessageId;
+    const { sendEmail, applyLabelToMessage, applyLabelToThread } = await import("@/lib/gmail");
+    const { generateMessage } = await import("@/lib/openai");
+    const message = await generateMessage(
+      {
+        subject_prompt: subjectPrompt,
+        body_prompt: bodyPrompt,
+      },
+      context.lead,
+      context.productDescription
+    );
+    const subject = threadSubject || message.subject;
 
-    try {
-      const { sendEmail, applyLabelToThread } = await import("@/lib/gmail");
-      const { generateMessage } = await import("@/lib/openai");
-      const message = await generateMessage(
-        {
-          subject_prompt: subjectPrompt,
-          body_prompt: bodyPrompt,
-        },
-        context.lead,
-        context.productDescription
-      );
+    const sent = await sendEmail({
+      to: context.lead.email,
+      subject,
+      htmlBody: message.body,
+      threadId,
+      replyToMessageId: lastMessageId,
+    });
 
-      const sent = await sendEmail(
-        context.lead.email,
-        message.subject,
-        message.body,
-        threadId
-      );
+    threadId = sent.threadId;
+    context.threadId = sent.threadId;
+    threadSubject = subject;
+    context.threadSubject = subject;
+    lastMessageId = sent.rfcMessageId || lastMessageId;
+    context.lastMessageId = lastMessageId;
 
-      threadId = sent.threadId;
-      context.threadId = sent.threadId;
+    await persistThreadState(context.supabase, context.campaignLead.id, {
+      threadId: sent.threadId,
+      lastMessageId,
+      threadSubject: subject,
+    });
 
-      await context.supabase
-        .from("campaign_leads")
-        .update({ thread_id: sent.threadId })
-        .eq("id", context.campaignLead.id);
-
-      if (context.campaign.gmail_label_id) {
-        try {
-          await applyLabelToThread(sent.threadId, context.campaign.gmail_label_id);
-        } catch {
-          // Labeling is best-effort only.
-        }
+    if (context.labelId) {
+      try {
+        await applyLabelToThread(sent.threadId, context.labelId);
+      } catch {
+        await applyLabelToMessage(sent.messageId, context.labelId);
       }
-    } catch (error) {
-      console.warn("Email send skipped:", error);
     }
 
     await logAction(
       context.supabase,
       context.campaignLead.id,
       "send_email",
-      threadId ? "success" : "skipped",
+      "success",
       {
         subject_prompt: subjectPrompt,
+        thread_subject: threadSubject,
         thread_id: threadId,
+        last_message_id: lastMessageId,
+        label_id: context.labelId,
       }
     );
   },
@@ -165,6 +271,7 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
   condition: async (node, context) => {
     const check = String(node.data.check || "replied");
     let hasReply = false;
+    let replyCheckError: string | null = null;
 
     if (context.threadId) {
       try {
@@ -173,8 +280,9 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
           context.threadId,
           process.env.GMAIL_USER_EMAIL!
         );
-      } catch {
+      } catch (error) {
         hasReply = false;
+        replyCheckError = error instanceof Error ? error.message : String(error);
       }
     }
 
@@ -193,6 +301,9 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
       check,
       result: replied,
       branch,
+      thread_id: context.threadId || null,
+      reply_check_error: replyCheckError,
+      missing_thread_id: !context.threadId,
     });
 
     return { branch };
@@ -209,6 +320,8 @@ async function processCampaignLead(
   campaign: Campaign,
   campaignLead: CampaignLead,
   parsedWorkflow: ParsedWorkflow,
+  productName: string,
+  labelId: string | null,
   productDescription?: string
 ) {
   if (!campaignLead.lead) {
@@ -222,8 +335,12 @@ async function processCampaignLead(
       campaign,
       campaignLead,
       lead: campaignLead.lead,
+      productName,
       productDescription,
+      labelId,
       threadId: campaignLead.thread_id || undefined,
+      lastMessageId: campaignLead.last_message_id || undefined,
+      threadSubject: campaignLead.thread_subject || undefined,
       replied: campaignLead.replied ?? false,
     },
     campaignHandlers,
@@ -282,14 +399,22 @@ export async function processActiveCampaigns(): Promise<{
     return { processed: 0, errors: 0 };
   }
 
-  // Pre-fetch products to get descriptions
+  // Pre-fetch products so campaigns can reuse product metadata per sweep.
   const productIds = [...new Set((activeCampaigns as Campaign[]).map((c) => c.product_id))];
   const { data: products } = await supabase
     .from("products")
-    .select("id, description")
+    .select("id, name, description")
     .in("id", productIds);
-  const productDescriptionMap = new Map<string, string>(
-    (products || []).map((p: { id: string; description: string | null }) => [p.id, p.description || ""])
+  const productMap = new Map<
+    string,
+    { name: string; description: string | null }
+  >(
+    (products || []).map(
+      (product: { id: string; name: string; description: string | null }) => [
+        product.id,
+        { name: product.name, description: product.description },
+      ]
+    )
   );
 
   for (const campaign of activeCampaigns as Campaign[]) {
@@ -302,42 +427,69 @@ export async function processActiveCampaigns(): Promise<{
       continue;
     }
 
-    const nowIso = new Date().toISOString();
-    const productDescription = productDescriptionMap.get(campaign.product_id) || undefined;
-
-    const { data: pendingLeads, error: leadsError } = await supabase
-      .from("campaign_leads")
-      .select("*, lead:leads(*)")
-      .eq("campaign_id", campaign.id)
-      .in("status", ["queued", "waiting"])
-      .limit(200);
-
-    if (leadsError || !pendingLeads?.length) {
+    const product = productMap.get(campaign.product_id);
+    if (!product) {
+      console.error(`Missing product ${campaign.product_id} for campaign ${campaign.id}`);
+      errors++;
       continue;
     }
 
-    const dueLeads = (pendingLeads as CampaignLead[]).filter((lead) => {
-      if (!lead.next_action_time) return true;
-      return lead.next_action_time <= nowIso;
-    });
+    const productName = product.name;
+    const productDescription = product.description || undefined;
 
-    for (const campaignLead of dueLeads) {
-      try {
-        processed += await processCampaignLead(
-          supabase,
-          campaign,
-          campaignLead,
-          parsedWorkflow,
-          productDescription
-        );
-      } catch (error) {
-        console.error(`Error processing campaign_lead ${campaignLead.id}:`, error);
-        await markFailed(
-          supabase,
-          campaignLead.id,
-          error instanceof Error ? error.message : String(error)
-        );
-        errors++;
+    let labelId: string | null = null;
+    try {
+      labelId = await ensureCampaignLabel(supabase, campaign, productName);
+    } catch (error) {
+      console.error(`Failed to ensure label for campaign ${campaign.id}:`, error);
+      errors++;
+      continue;
+    }
+
+    while (true) {
+      const nowIso = new Date().toISOString();
+      const { data: dueLeads, error: leadsError } = await supabase
+        .from("campaign_leads")
+        .select("*, lead:leads(*)")
+        .eq("campaign_id", campaign.id)
+        .in("status", ["queued", "waiting"])
+        .lte("next_action_time", nowIso)
+        .order("next_action_time", { ascending: true })
+        .limit(200);
+
+      if (leadsError || !dueLeads?.length) {
+        break;
+      }
+
+      for (const campaignLead of dueLeads as CampaignLead[]) {
+        try {
+          const claimed = await claimCampaignLead(supabase, campaignLead.id);
+          if (!claimed) {
+            continue;
+          }
+
+          processed += await processCampaignLead(
+            supabase,
+            campaign,
+            campaignLead,
+            parsedWorkflow,
+            productName,
+            labelId,
+            productDescription
+          );
+        } catch (error) {
+          console.error(`Error processing campaign_lead ${campaignLead.id}:`, error);
+          await markFailed(
+            supabase,
+            campaignLead.id,
+            error instanceof Error ? error.message : String(error)
+          );
+          errors++;
+        }
+      }
+
+      if (dueLeads.length < 200) {
+        break;
       }
     }
   }

@@ -1,5 +1,12 @@
 import { google } from "googleapis";
 
+function normalizeEmail(value: string | undefined | null): string | null {
+  if (!value) return null;
+  const match = value.match(/<([^>]+)>/);
+  const email = (match?.[1] || value).trim().toLowerCase();
+  return email || null;
+}
+
 function getGmailClient() {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GMAIL_CLIENT_ID,
@@ -11,13 +18,15 @@ function getGmailClient() {
   return google.gmail({ version: "v1", auth: oauth2Client });
 }
 
-export async function sendEmail(
-  to: string,
-  subject: string,
-  htmlBody: string,
-  threadId?: string
-): Promise<{ messageId: string; threadId: string }> {
+export async function sendEmail(params: {
+  to: string;
+  subject: string;
+  htmlBody: string;
+  threadId?: string;
+  replyToMessageId?: string;
+}): Promise<{ messageId: string; threadId: string; rfcMessageId: string | null }> {
   const gmail = getGmailClient();
+  const { to, subject, htmlBody, threadId, replyToMessageId } = params;
 
   const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString("base64")}?=`;
   const messageParts = [
@@ -26,6 +35,12 @@ export async function sendEmail(
     `Subject: ${utf8Subject}`,
     "MIME-Version: 1.0",
     "Content-Type: text/html; charset=utf-8",
+    ...(replyToMessageId
+      ? [
+          `In-Reply-To: ${replyToMessageId}`,
+          `References: ${replyToMessageId}`,
+        ]
+      : []),
     "",
     htmlBody,
   ];
@@ -44,9 +59,22 @@ export async function sendEmail(
     },
   });
 
+  const sentMessageId = res.data.id!;
+  const metadata = await gmail.users.messages.get({
+    userId: "me",
+    id: sentMessageId,
+    format: "metadata",
+    metadataHeaders: ["Message-ID"],
+  });
+  const messageIdHeader =
+    metadata.data.payload?.headers?.find(
+      (header) => header.name?.toLowerCase() === "message-id"
+    )?.value || null;
+
   return {
-    messageId: res.data.id!,
+    messageId: sentMessageId,
     threadId: res.data.threadId!,
+    rfcMessageId: messageIdHeader,
   };
 }
 
@@ -82,11 +110,26 @@ export async function applyLabelToThread(
   });
 }
 
+export async function applyLabelToMessage(
+  messageId: string,
+  labelId: string
+): Promise<void> {
+  const gmail = getGmailClient();
+  await gmail.users.messages.modify({
+    userId: "me",
+    id: messageId,
+    requestBody: {
+      addLabelIds: [labelId],
+    },
+  });
+}
+
 export async function hasThreadReceivedReply(
   threadId: string,
   senderEmail: string
 ): Promise<boolean> {
   const gmail = getGmailClient();
+  const normalizedSender = normalizeEmail(senderEmail);
 
   const res = await gmail.users.threads.get({
     userId: "me",
@@ -102,6 +145,7 @@ export async function hasThreadReceivedReply(
     const fromHeader = msg.payload?.headers?.find(
       (h) => h.name?.toLowerCase() === "from"
     );
-    return fromHeader && !fromHeader.value?.includes(senderEmail);
+    const fromEmail = normalizeEmail(fromHeader?.value);
+    return Boolean(fromEmail && normalizedSender && fromEmail !== normalizedSender);
   });
 }
