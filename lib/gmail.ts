@@ -200,6 +200,29 @@ function extractBody(part: GmailPart | null | undefined): string {
   return "";
 }
 
+/**
+ * Return the RFC Message-ID header of the last message in a thread.
+ * Used to set In-Reply-To / References headers for proper email threading.
+ */
+export async function getLastRfcMessageId(
+  threadId: string
+): Promise<string | null> {
+  const gmail = getGmailClient();
+  const res = await gmail.users.threads.get({
+    userId: "me",
+    id: threadId,
+    format: "metadata",
+    metadataHeaders: ["Message-ID"],
+  });
+  const messages = res.data.messages || [];
+  if (messages.length === 0) return null;
+  const last = messages[messages.length - 1];
+  const header = last.payload?.headers?.find(
+    (h) => h.name?.toLowerCase() === "message-id"
+  );
+  return header?.value || null;
+}
+
 export async function getThreadMessages(
   threadId: string
 ): Promise<import("@/types").ThreadMessage[]> {

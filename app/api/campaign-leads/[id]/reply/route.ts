@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { sendEmail, applyLabelToThread } from "@/lib/gmail";
+import { sendEmail, applyLabelToThread, getLastRfcMessageId } from "@/lib/gmail";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -39,12 +39,25 @@ export async function POST(
   }
 
   try {
+    // Fetch the actual last RFC Message-ID from the Gmail thread so that
+    // In-Reply-To / References point to the real last message (which may be
+    // an inbound reply from the lead, not the stored outbound message ID).
+    let replyToMessageId: string | undefined = campaignLead.last_message_id ?? undefined;
+    if (campaignLead.thread_id) {
+      try {
+        const lastRfc = await getLastRfcMessageId(campaignLead.thread_id);
+        if (lastRfc) replyToMessageId = lastRfc;
+      } catch {
+        // Non-fatal — fall back to stored last_message_id
+      }
+    }
+
     const { messageId, threadId, rfcMessageId } = await sendEmail({
       to: lead.email,
       subject,
       htmlBody,
       threadId: campaignLead.thread_id ?? undefined,
-      replyToMessageId: campaignLead.last_message_id ?? undefined,
+      replyToMessageId,
     });
 
     // Persist thread state back to DB
