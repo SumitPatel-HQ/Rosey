@@ -44,7 +44,7 @@ export default function ProductLayout({
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {!isCampaignDetail && (
           <aside className="w-56 border-r bg-muted/30 p-4 shrink-0">
             <nav className="space-y-1">
