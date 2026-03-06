@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ProductCard } from "@/components/dashboard/product-card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Zap } from "lucide-react";
 import Image from "next/image";
 
 interface ProductWithCounts {

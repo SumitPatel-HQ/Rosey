@@ -31,7 +31,7 @@ import { Separator } from "@/components/ui/separator";
 import { AnalyticsPanel } from "@/components/campaign/analytics-panel";
 import { LeadsPanel } from "@/components/campaign/leads-panel";
 import {
-  Save, Play, Loader2, BarChart3, Users, Mail, Clock,
+  Save, Play, StopCircle, Loader2, BarChart3, Users, Mail, Clock,
   GitBranch, Square, ChevronLeft, Workflow,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -66,6 +66,7 @@ function BuilderInner() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [saving, setSaving] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [view, setView] = useState<View>("workflow");
   const loadedRef = useRef(false);
 
@@ -148,6 +149,25 @@ function BuilderInner() {
     }
   }, [campaignId, toObject]);
 
+  async function handleStop() {
+    setStopping(true);
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "paused" }),
+      });
+      if (!res.ok) throw new Error("Failed to stop campaign");
+      const data = await res.json();
+      setCampaign(data);
+      toast.success("Campaign paused");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to stop campaign");
+    } finally {
+      setStopping(false);
+    }
+  }
+
   async function handleActivate() {
     await handleSave();
     setActivating(true);
@@ -214,7 +234,7 @@ function BuilderInner() {
               )}
               Save
             </Button>
-            {campaign.status === "draft" && (
+            {(campaign.status === "draft" || campaign.status === "paused") && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm">
@@ -235,6 +255,32 @@ function BuilderInner() {
                     <AlertDialogAction onClick={handleActivate} disabled={activating}>
                       {activating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                       Yes, Activate
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {campaign.status === "active" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="destructive">
+                    <StopCircle className="h-4 w-4 mr-2" />
+                    Stop
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Stop Campaign?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will pause the campaign. Leads currently waiting will resume from their
+                      current node when re-activated.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleStop} disabled={stopping}>
+                      {stopping && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                      Yes, Stop
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
