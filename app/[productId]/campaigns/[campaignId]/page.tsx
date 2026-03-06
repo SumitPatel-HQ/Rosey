@@ -235,7 +235,7 @@ function BuilderInner() {
               )}
               Save
             </Button>
-            {campaign.status === "draft" && (
+            {(campaign.status === "draft" || campaign.status === "completed") && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm">
