@@ -22,7 +22,6 @@ export async function POST(
     return NextResponse.json({ error: "Campaign is already active" }, { status: 400 });
   }
 
-  // Verify workflow has at least a start and end node
   const nodes = campaign.workflow_json?.nodes || [];
   const hasStart = nodes.some((n: { type: string }) => n.type === "start");
   const hasEnd = nodes.some((n: { type: string }) => n.type === "end");
@@ -31,6 +30,44 @@ export async function POST(
       { error: "Workflow must have at least a Start and End node" },
       { status: 400 }
     );
+  }
+
+  // Auto-assign all product leads that aren't already in this campaign
+  const startNode = nodes.find((n: { type: string }) => n.type === "start");
+  const startNodeId = startNode?.id || "1";
+
+  const { data: allLeads } = await supabase
+    .from("leads")
+    .select("id")
+    .eq("product_id", campaign.product_id);
+
+  if (allLeads?.length) {
+    const { data: existingAssignments } = await supabase
+      .from("campaign_leads")
+      .select("lead_id")
+      .eq("campaign_id", id);
+
+    const alreadyAssigned = new Set(
+      (existingAssignments || []).map((a) => a.lead_id)
+    );
+    const newLeadIds = allLeads
+      .map((l) => l.id)
+      .filter((lid) => !alreadyAssigned.has(lid));
+
+    if (newLeadIds.length > 0) {
+      const rows = newLeadIds.map((leadId) => ({
+        campaign_id: id,
+        lead_id: leadId,
+        current_node_id: startNodeId,
+        status: "queued" as const,
+      }));
+
+      await supabase.from("campaign_leads").insert(rows);
+      await supabase
+        .from("leads")
+        .update({ contacted: true })
+        .in("id", newLeadIds);
+    }
   }
 
   const { data, error } = await supabase
@@ -44,5 +81,6 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  const totalAssigned = allLeads?.length || 0;
+  return NextResponse.json({ ...data, leads_assigned: totalAssigned });
 }

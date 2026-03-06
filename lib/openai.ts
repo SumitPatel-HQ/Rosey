@@ -1,7 +1,10 @@
 import OpenAI from "openai";
 import type { Lead, SendEmailNodeData } from "@/types";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+  baseURL: process.env.AZURE_OPENAI_BASE_URL,
+});
 
 export async function generateMessage(
   nodeData: SendEmailNodeData,
@@ -18,7 +21,7 @@ export async function generateMessage(
   const bodyPrompt = interpolate(nodeData.body_prompt || "Write a professional outreach email");
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5.3-chat",
     messages: [
       {
         role: "system",
