@@ -25,18 +25,6 @@ export async function POST(request: NextRequest) {
     gmail_label_prefix: `NeuralNexus/${body.name}`,
   };
 
-  // Auto-create Google Sheet + Drive folder if service account is configured
-  if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
-    try {
-      const { createProductSheet } = await import("@/lib/sheets");
-      const { sheetId, folderId } = await createProductSheet(body.name);
-      productData.sheet_id = sheetId;
-      productData.drive_folder_id = folderId;
-    } catch (err) {
-      console.warn("Sheets auto-creation failed (non-blocking):", err);
-    }
-  }
-
   const { data, error } = await supabase
     .from("products")
     .insert(productData)
