@@ -186,6 +186,8 @@ interface CampaignExecutionContext {
   threadSubject?: string;
   labelId?: string | null;
   replied: boolean;
+  /** Shared counter incremented each time an email is actually sent this sweep */
+  emailCounter: { count: number };
 }
 
 const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
@@ -234,9 +236,8 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
         const message = await generateMessage(prompt, null, context.productDescription, {
           senderEmail: process.env.GMAIL_USER_EMAIL,
           isFollowUp: !!threadId,
+          enrichedData: context.lead.enriched_data ?? null,
         });
-
-        // Mutate node.data in-memory so remaining leads in this batch skip generation
         node.data.cached_subject = message.subject;
         node.data.cached_body = message.body;
 
@@ -261,6 +262,7 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
       const message = await generateMessage(prompt, context.lead, context.productDescription, {
         senderEmail: process.env.GMAIL_USER_EMAIL,
         isFollowUp: !!threadId,
+        enrichedData: context.lead.enriched_data ?? null,
       });
       subject = threadSubject || message.subject;
       htmlBody = message.body;
@@ -309,6 +311,8 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
         label_id: context.labelId,
       }
     );
+    // Increment the per-sweep email counter (used for rate limiting)
+    context.emailCounter.count++;
   },
 
   wait: async (node, context) => {
@@ -378,11 +382,14 @@ async function processCampaignLead(
   parsedWorkflow: ParsedWorkflow,
   productName: string,
   labelId: string | null,
-  productDescription?: string
+  productDescription?: string,
+  emailCounter?: { count: number }
 ) {
   if (!campaignLead.lead) {
     throw new Error(`Lead ${campaignLead.lead_id} not loaded`);
   }
+
+  const counter = emailCounter ?? { count: 0 };
 
   const outcome = await runWorkflow(
     parsedWorkflow,
@@ -398,6 +405,7 @@ async function processCampaignLead(
       lastMessageId: campaignLead.last_message_id || undefined,
       threadSubject: campaignLead.thread_subject || undefined,
       replied: campaignLead.replied ?? false,
+      emailCounter: counter,
     },
     campaignHandlers,
     {
@@ -436,6 +444,36 @@ async function processCampaignLead(
     .eq("id", campaignLead.id);
 
   return outcome.steps;
+}
+
+/**
+ * Returns how many emails were successfully sent for a campaign in the last hour.
+ */
+async function getEmailsSentInLastHour(
+  supabase: ReturnType<typeof getSupabase>,
+  campaignId: string
+): Promise<number> {
+  const oneHourAgo = new Date(Date.now() - 3_600_000).toISOString();
+
+  // Step 1: get all campaign_lead IDs for this campaign
+  const { data: clRows } = await supabase
+    .from("campaign_leads")
+    .select("id")
+    .eq("campaign_id", campaignId);
+
+  if (!clRows?.length) return 0;
+  const ids = clRows.map((r: { id: string }) => r.id);
+
+  // Step 2: count matching send_email success logs in the last hour
+  const { count } = await supabase
+    .from("logs")
+    .select("id", { count: "exact", head: true })
+    .in("campaign_lead_id", ids)
+    .eq("action", "send_email")
+    .eq("status", "success")
+    .gte("created_at", oneHourAgo);
+
+  return count ?? 0;
 }
 
 async function sweepRepliedLeads(
@@ -544,6 +582,29 @@ export async function processActiveCampaigns(): Promise<{
       continue;
     }
 
+    // ── Rate limiting ────────────────────────────────────────────────────────
+    const rateLimit = campaign.email_rate_limit_per_hour ?? null;
+    let emailBudget = Infinity; // max emails to send this sweep for this campaign
+
+    if (rateLimit !== null && rateLimit > 0) {
+      const sentInLastHour = await getEmailsSentInLastHour(supabase, campaign.id);
+      const remaining = rateLimit - sentInLastHour;
+      if (remaining <= 0) {
+        console.log(
+          `Campaign ${campaign.id}: rate limit reached (${sentInLastHour}/${rateLimit} per hour). Skipping sweep.`
+        );
+        continue; // skip this campaign entirely this sweep
+      }
+      emailBudget = remaining;
+      console.log(
+        `Campaign ${campaign.id}: email budget this sweep = ${emailBudget} (${sentInLastHour}/${rateLimit} used)`
+      );
+    }
+
+    // Shared counter — send_email handler increments this
+    const emailCounter = { count: 0 };
+    let rateLimitHit = false;
+
     while (true) {
       const nowIso = new Date().toISOString();
       const { data: dueLeads, error: leadsError } = await supabase
@@ -560,6 +621,12 @@ export async function processActiveCampaigns(): Promise<{
       }
 
       for (const campaignLead of dueLeads as CampaignLead[]) {
+        // Check budget before picking up next lead
+        if (emailCounter.count >= emailBudget) {
+          rateLimitHit = true;
+          break;
+        }
+
         try {
           const claimed = await claimCampaignLead(supabase, campaignLead.id);
           if (!claimed) {
@@ -573,7 +640,8 @@ export async function processActiveCampaigns(): Promise<{
             parsedWorkflow,
             productName,
             labelId,
-            productDescription
+            productDescription,
+            emailCounter
           );
         } catch (error) {
           console.error(`Error processing campaign_lead ${campaignLead.id}:`, error);
@@ -586,7 +654,7 @@ export async function processActiveCampaigns(): Promise<{
         }
       }
 
-      if (dueLeads.length < 200) {
+      if (rateLimitHit || dueLeads.length < 200) {
         break;
       }
     }

@@ -33,6 +33,11 @@ export async function PUT(
   if (body.name !== undefined) updates.name = body.name;
   if (body.workflow_json !== undefined) updates.workflow_json = body.workflow_json;
   if (body.status !== undefined) updates.status = body.status;
+  if (body.email_rate_limit_per_hour !== undefined)
+    updates.email_rate_limit_per_hour =
+      body.email_rate_limit_per_hour === null || body.email_rate_limit_per_hour === ""
+        ? null
+        : Math.max(1, Number(body.email_rate_limit_per_hour));
 
   const { data, error } = await supabase
     .from("campaigns")

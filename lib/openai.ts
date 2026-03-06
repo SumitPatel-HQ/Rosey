@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { Lead } from "@/types";
+import type { Lead, EnrichedLeadData } from "@/types";
 
 const openai = new OpenAI({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
@@ -21,7 +21,7 @@ export async function generateMessage(
   prompt: string,
   lead: Lead | null,
   productDescription?: string,
-  options?: { senderEmail?: string; isFollowUp?: boolean }
+  options?: { senderEmail?: string; isFollowUp?: boolean; enrichedData?: EnrichedLeadData | null }
 ): Promise<{ subject: string; body: string }> {
   const effectivePrompt = lead
     ? prompt
@@ -39,6 +39,18 @@ export async function generateMessage(
 
   const senderEmail = options?.senderEmail;
   const isFollowUp = options?.isFollowUp ?? false;
+  const enrichedData = options?.enrichedData;
+
+  const enrichmentInstruction = enrichedData && enrichedData.personalization_hooks.length > 0
+    ? `\n\nEnriched lead intelligence (scraped from the web — use these to make the email feel personal and deeply researched):\n` +
+      (enrichedData.job_title ? `- Job title: ${enrichedData.job_title}\n` : "") +
+      (enrichedData.bio ? `- Bio: ${enrichedData.bio}\n` : "") +
+      (enrichedData.company_description ? `- Company: ${enrichedData.company_description}\n` : "") +
+      (enrichedData.recent_news ? `- Recent news: ${enrichedData.recent_news}\n` : "") +
+      (enrichedData.pain_points?.length ? `- Likely pain points: ${enrichedData.pain_points.join(", ")}\n` : "") +
+      `- Personalization hooks to weave in: ${enrichedData.personalization_hooks.join(" | ")}\n` +
+      `Reference 1-2 of these hooks naturally — do NOT list them verbatim. Make the email feel like you did your homework.`
+    : "";
 
   const senderInstruction = senderEmail
     ? `You are writing on behalf of ${senderEmail}. When signing off, use the name derived from that email address — never write placeholder text like [Your Name], [Sender], or similar.`
@@ -60,7 +72,8 @@ export async function generateMessage(
           `${followUpInstruction} ` +
           "Based on the user's instructions, generate both a subject line and an email body. " +
           'Respond with JSON: {"subject": "...", "body": "<html>...</html>"}. ' +
-          "The body must be valid HTML suitable for email. Keep it concise (3-5 sentences).",
+          "The body must be valid HTML suitable for email. Keep it concise (3-5 sentences)." +
+          enrichmentInstruction,
       },
       {
         role: "user",

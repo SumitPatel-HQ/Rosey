@@ -8,6 +8,18 @@ export interface Product {
   created_at: string;
 }
 
+export interface EnrichedLeadData {
+  job_title?: string | null;
+  bio?: string | null;
+  company_description?: string | null;
+  recent_news?: string | null;
+  interests?: string[];
+  pain_points?: string[];
+  personalization_hooks: string[];
+  sources_used: string[];
+  scraped_at: string;
+}
+
 export interface Lead {
   id: string;
   product_id: string;
@@ -16,6 +28,7 @@ export interface Lead {
   company: string | null;
   industry: string | null;
   tags: string[];
+  enriched_data: EnrichedLeadData | null;
   created_at: string;
 }
 
@@ -26,6 +39,8 @@ export interface Campaign {
   workflow_json: WorkflowJSON;
   status: "draft" | "active" | "completed";
   gmail_label_id: string | null;
+  /** Max outbound emails per hour for this campaign. null = unlimited. */
+  email_rate_limit_per_hour: number | null;
   created_at: string;
   product?: Product;
 }

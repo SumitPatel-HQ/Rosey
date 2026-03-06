@@ -33,8 +33,9 @@ import { LeadsPanel } from "@/components/campaign/leads-panel";
 import { InboxPanel } from "@/components/campaign/inbox-panel";
 import {
   Save, Play, StopCircle, Loader2, BarChart3, Users, Mail, Clock,
-  GitBranch, Square, ChevronLeft, Workflow, Inbox,
+  GitBranch, Square, ChevronLeft, Workflow, Inbox, Gauge,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@/types";
@@ -70,6 +71,7 @@ function BuilderInner() {
   const [activating, setActivating] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [view, setView] = useState<View>("workflow");
+  const [rateLimitValue, setRateLimitValue] = useState<string>("");
   const loadedRef = useRef(false);
 
   const {
@@ -90,6 +92,11 @@ function BuilderInner() {
       .then((r) => r.json())
       .then((data) => {
         setCampaign(data);
+        setRateLimitValue(
+          data.email_rate_limit_per_hour != null
+            ? String(data.email_rate_limit_per_hour)
+            : ""
+        );
         if (data.workflow_json?.nodes?.length) {
           loadWorkflow(data.workflow_json.nodes, data.workflow_json.edges || []);
         }
@@ -116,6 +123,28 @@ function BuilderInner() {
     },
     [screenToFlowPosition, addNode]
   );
+
+  async function handleRateLimitSave(value: string) {
+    const parsed = value.trim() === "" ? null : parseInt(value, 10);
+    if (parsed !== null && (isNaN(parsed) || parsed < 1)) return;
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email_rate_limit_per_hour: parsed }),
+      });
+      if (!res.ok) throw new Error("Failed to save rate limit");
+      const data = await res.json();
+      setCampaign(data);
+      toast.success(
+        parsed === null
+          ? "Rate limit removed"
+          : `Rate limit set to ${parsed} emails/hr`
+      );
+    } catch {
+      toast.error("Failed to update rate limit");
+    }
+  }
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -227,6 +256,21 @@ function BuilderInner() {
         </div>
         {view === "workflow" && (
           <div className="flex items-center gap-2">
+            {/* Email rate limit */}
+            <div className="flex items-center gap-1.5 border rounded-md px-2 py-1 bg-muted/40">
+              <Gauge className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <Input
+                type="number"
+                min={1}
+                placeholder="∞"
+                value={rateLimitValue}
+                onChange={(e) => setRateLimitValue(e.target.value)}
+                onBlur={() => handleRateLimitSave(rateLimitValue)}
+                onKeyDown={(e) => e.key === "Enter" && handleRateLimitSave(rateLimitValue)}
+                className="h-6 w-16 border-0 bg-transparent text-xs px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              <span className="text-xs text-muted-foreground whitespace-nowrap">emails/hr</span>
+            </div>
             <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
               {saving ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

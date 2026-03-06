@@ -30,7 +30,7 @@ export function ProductSelector() {
       value={productId || ""}
       onValueChange={(value) => {
         if (value === "__dashboard__") {
-          router.push("/");
+          router.push("/dashboard");
         } else {
           router.push(`/${value}`);
         }

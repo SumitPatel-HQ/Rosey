@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreVertical, Trash2, Loader2 } from "lucide-react";
+import { MoreVertical, Trash2, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import type { Lead } from "@/types";
 
@@ -48,6 +48,27 @@ export function LeadsTable({
 }: LeadsTableProps) {
   const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [enrichingId, setEnrichingId] = useState<string | null>(null);
+  const [enrichedIds, setEnrichedIds] = useState<Set<string>>(
+    () => new Set(leads.filter((l) => l.enriched_data).map((l) => l.id))
+  );
+
+  async function handleEnrich(lead: Lead) {
+    setEnrichingId(lead.id);
+    try {
+      const res = await fetch(`/api/leads/${lead.id}/enrich`, { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error);
+      }
+      setEnrichedIds((prev) => new Set([...prev, lead.id]));
+      toast.success(`${lead.name} enriched with web intelligence`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Enrichment failed");
+    } finally {
+      setEnrichingId(null);
+    }
+  }
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -72,7 +93,7 @@ export function LeadsTable({
     }
   }
 
-  const colCount = (selectable ? 1 : 0) + 7;
+  const colCount = (selectable ? 1 : 0) + 8;
 
   return (
     <>
@@ -86,6 +107,7 @@ export function LeadsTable({
               <TableHead>Company</TableHead>
               <TableHead>Industry</TableHead>
               <TableHead>Tags</TableHead>
+              <TableHead>Enriched</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="w-10" />
             </TableRow>
@@ -132,6 +154,15 @@ export function LeadsTable({
                       ))}
                     </div>
                   </TableCell>
+                  <TableCell>
+                    {enrichedIds.has(lead.id) ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-medium">
+                        <Sparkles className="h-3 w-3" /> Enriched
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {new Date(lead.created_at).toLocaleDateString()}
                   </TableCell>
@@ -147,6 +178,17 @@ export function LeadsTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleEnrich(lead)}
+                          disabled={enrichingId === lead.id}
+                        >
+                          {enrichingId === lead.id ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-4 w-4 mr-2" />
+                          )}
+                          {enrichedIds.has(lead.id) ? "Re-enrich" : "Enrich with AI"}
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={() => setDeleteTarget(lead)}

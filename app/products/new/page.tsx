@@ -55,7 +55,7 @@ export default function NewProductPage() {
       <header className="border-b">
         <div className="container mx-auto flex h-14 items-center justify-between px-6">
           <Link
-            href="/"
+            href="/dashboard"
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
