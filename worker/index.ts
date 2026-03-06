@@ -1,4 +1,4 @@
-const INTERVAL = 60_000;
+const INTERVAL = 10_000;
 const APP_URL =
   process.env.ENGINE_BASE_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||

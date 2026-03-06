@@ -28,8 +28,8 @@ export default function ProductLayout({
   const isCampaignDetail = /\/campaigns\/[^/]/.test(pathname);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b bg-background sticky top-0 z-50">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      <header className="border-b bg-background z-50 shrink-0">
         <div className="flex h-14 items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2 shrink-0">
@@ -72,7 +72,7 @@ export default function ProductLayout({
           </aside>
         )}
 
-        <main className={cn("flex-1", !isCampaignDetail && "p-6")}>
+        <main className={cn("flex-1 min-h-0 overflow-hidden flex flex-col", !isCampaignDetail && "p-6")}>
           {children}
         </main>
       </div>

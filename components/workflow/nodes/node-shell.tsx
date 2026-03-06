@@ -24,7 +24,7 @@ const accentStyles: Record<
 > = {
   emerald: {
     shell:
-      "border-emerald-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-emerald-900/60 dark:bg-slate-950",
+      "border-emerald-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-emerald-900/60 dark:bg-gradient-to-br dark:from-slate-950 dark:to-emerald-950/30",
     selectedRing: "ring-2 ring-emerald-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-emerald-100 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:ring-emerald-900/60",
     icon: "text-emerald-600 dark:text-emerald-300",
@@ -39,7 +39,7 @@ const accentStyles: Record<
   },
   blue: {
     shell:
-      "border-blue-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-blue-900/60 dark:bg-slate-950",
+      "border-blue-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-blue-900/60 dark:bg-gradient-to-br dark:from-slate-950 dark:to-blue-950/30",
     selectedRing: "ring-2 ring-blue-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-blue-100 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:ring-blue-900/60",
     icon: "text-blue-600 dark:text-blue-300",
@@ -54,7 +54,7 @@ const accentStyles: Record<
   },
   amber: {
     shell:
-      "border-amber-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-amber-900/60 dark:bg-slate-950",
+      "border-amber-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-amber-900/60 dark:bg-gradient-to-br dark:from-slate-950 dark:to-amber-950/30",
     selectedRing: "ring-2 ring-amber-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-amber-100 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-900/60",
     icon: "text-amber-600 dark:text-amber-300",
@@ -69,7 +69,7 @@ const accentStyles: Record<
   },
   violet: {
     shell:
-      "border-purple-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-purple-900/60 dark:bg-slate-950",
+      "border-purple-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-purple-900/60 dark:bg-gradient-to-br dark:from-slate-950 dark:to-purple-950/30",
     selectedRing: "ring-2 ring-violet-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-purple-100 ring-1 ring-purple-200 dark:bg-purple-950/40 dark:ring-purple-900/60",
     icon: "text-purple-600 dark:text-purple-300",
@@ -84,7 +84,7 @@ const accentStyles: Record<
   },
   rose: {
     shell:
-      "border-red-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-red-900/60 dark:bg-slate-950",
+      "border-red-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-red-900/60 dark:bg-gradient-to-br dark:from-slate-950 dark:to-red-950/30",
     selectedRing: "ring-2 ring-rose-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-red-100 ring-1 ring-red-200 dark:bg-red-950/40 dark:ring-red-900/60",
     icon: "text-red-600 dark:text-red-300",

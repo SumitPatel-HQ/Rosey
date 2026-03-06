@@ -117,6 +117,9 @@
 }
 
 @layer base {
+  html, body {
+    @apply h-full;
+  }
   * {
     @apply border-border outline-ring/50;
   }

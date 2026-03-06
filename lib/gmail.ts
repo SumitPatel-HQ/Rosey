@@ -149,3 +149,89 @@ export async function hasThreadReceivedReply(
     return Boolean(fromEmail && normalizedSender && fromEmail !== normalizedSender);
   });
 }
+
+function decodeMessageBody(
+  payload: {
+    mimeType?: string | null;
+    body?: { data?: string | null } | null;
+    parts?: typeof payload[] | null;
+  } | null | undefined
+): string {
+  if (!payload) return "";
+
+  // Prefer text/html, fall back to text/plain
+  if (
+    payload.mimeType === "text/html" ||
+    payload.mimeType === "text/plain"
+  ) {
+    const data = payload.body?.data;
+    if (data) {
+      const decoded = Buffer.from(
+        data.replace(/-/g, "+").replace(/_/g, "/"),
+        "base64"
+      ).toString("utf-8");
+      if (payload.mimeType === "text/plain") {
+        return decoded.replace(/\n/g, "<br>");
+      }
+      return decoded;
+    }
+  }
+
+  if (payload.parts) {
+    // Try html part first
+    const htmlPart = payload.parts.find((p) => p?.mimeType === "text/html");
+    if (htmlPart) return decodeMessageBody(htmlPart);
+    // Fall back to text/plain
+    const textPart = payload.parts.find((p) => p?.mimeType === "text/plain");
+    if (textPart) return decodeMessageBody(textPart);
+    // Recurse into multipart
+    for (const part of payload.parts) {
+      const result = decodeMessageBody(part);
+      if (result) return result;
+    }
+  }
+
+  return "";
+}
+
+export async function getThreadMessages(
+  threadId: string
+): Promise<import("@/types").ThreadMessage[]> {
+  const gmail = getGmailClient();
+  const senderEmail = (process.env.GMAIL_USER_EMAIL || "").toLowerCase();
+
+  const res = await gmail.users.threads.get({
+    userId: "me",
+    id: threadId,
+    format: "full",
+  });
+
+  const messages = res.data.messages || [];
+
+  return messages.map((msg) => {
+    const headers = msg.payload?.headers || [];
+    const getHeader = (name: string) =>
+      headers.find((h) => h.name?.toLowerCase() === name.toLowerCase())?.value || "";
+
+    const from = getHeader("from");
+    const to = getHeader("to");
+    const subject = getHeader("subject");
+    const date = getHeader("date");
+    const body = decodeMessageBody(msg.payload as Parameters<typeof decodeMessageBody>[0]);
+
+    const fromEmail = normalizeEmail(from) || "";
+    const isOutbound = Boolean(
+      senderEmail && fromEmail && fromEmail === senderEmail.toLowerCase()
+    );
+
+    return {
+      messageId: msg.id || "",
+      from,
+      to,
+      subject,
+      date,
+      body,
+      isOutbound,
+    };
+  });
+}

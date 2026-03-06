@@ -57,6 +57,16 @@ export interface Log {
   created_at: string;
 }
 
+export interface ThreadMessage {
+  messageId: string;
+  from: string;
+  to: string;
+  subject: string;
+  date: string;
+  body: string;
+  isOutbound: boolean;
+}
+
 export interface WorkflowJSON {
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];

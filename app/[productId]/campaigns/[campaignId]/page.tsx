@@ -30,15 +30,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { AnalyticsPanel } from "@/components/campaign/analytics-panel";
 import { LeadsPanel } from "@/components/campaign/leads-panel";
+import { InboxPanel } from "@/components/campaign/inbox-panel";
 import {
   Save, Play, StopCircle, Loader2, BarChart3, Users, Mail, Clock,
-  GitBranch, Square, ChevronLeft, Workflow,
+  GitBranch, Square, ChevronLeft, Workflow, Inbox,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@/types";
 
-type View = "workflow" | "leads" | "analytics";
+type View = "workflow" | "leads" | "analytics" | "inbox";
 
 // ─── Node palette items & sidebar nav ────────────────────────────────────────
 
@@ -54,6 +55,7 @@ const sidebarNav: { view: View; label: string; icon: React.ElementType }[] = [
   { view: "workflow", label: "Workflow Editor", icon: Workflow },
   { view: "leads", label: "Leads", icon: Users },
   { view: "analytics", label: "Analytics", icon: BarChart3 },
+  { view: "inbox", label: "Inbox", icon: Inbox },
 ];
 
 // ─── Main builder ─────────────────────────────────────────────────────────────
@@ -211,7 +213,7 @@ function BuilderInner() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b bg-background shrink-0">
         <div className="flex items-center gap-3">
@@ -347,7 +349,8 @@ function BuilderInner() {
         {/* Main content area */}
         <div className="flex-1 h-full overflow-hidden">
           {view === "workflow" && (
-            <ReactFlow
+            <div className="h-full w-full">
+              <ReactFlow
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
@@ -364,12 +367,16 @@ function BuilderInner() {
               <MiniMap pannable zoomable />
               <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
             </ReactFlow>
+            </div>
           )}
           {view === "leads" && (
             <LeadsPanel campaignId={campaignId} productId={productId} />
           )}
           {view === "analytics" && (
             <AnalyticsPanel campaignId={campaignId} />
+          )}
+          {view === "inbox" && (
+            <InboxPanel campaignId={campaignId} productId={productId} />
           )}
         </div>
       </div>

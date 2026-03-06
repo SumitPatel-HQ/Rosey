@@ -231,7 +231,10 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
         htmlBody = interpolate(cachedBody);
       } else {
         // Cache miss — generate once, then persist it back into workflow_json
-        const message = await generateMessage(prompt, null, context.productDescription);
+        const message = await generateMessage(prompt, null, context.productDescription, {
+          senderEmail: process.env.GMAIL_USER_EMAIL,
+          isFollowUp: !!threadId,
+        });
 
         // Mutate node.data in-memory so remaining leads in this batch skip generation
         node.data.cached_subject = message.subject;
@@ -255,7 +258,10 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
       }
     } else {
       // Personalized — unique email per lead
-      const message = await generateMessage(prompt, context.lead, context.productDescription);
+      const message = await generateMessage(prompt, context.lead, context.productDescription, {
+        senderEmail: process.env.GMAIL_USER_EMAIL,
+        isFollowUp: !!threadId,
+      });
       subject = threadSubject || message.subject;
       htmlBody = message.body;
     }
@@ -541,6 +547,19 @@ export async function processActiveCampaigns(): Promise<{
       if (dueLeads.length < 200) {
         break;
       }
+    }
+
+    const { data: remainingLeads } = await supabase
+      .from("campaign_leads")
+      .select("id")
+      .eq("campaign_id", campaign.id)
+      .in("status", ["queued", "waiting", "active"]);
+
+    if (!remainingLeads?.length) {
+      await supabase
+        .from("campaigns")
+        .update({ status: "completed" })
+        .eq("id", campaign.id);
     }
   }
 
