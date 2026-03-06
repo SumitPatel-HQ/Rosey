@@ -47,10 +47,8 @@ export function CampaignSelector() {
       <SelectTrigger
         className={`w-[200px] h-9 ${!isCampaignsSection ? "opacity-60" : ""}`}
       >
-        <div className="flex items-center gap-2">
-          <Megaphone className="h-4 w-4 text-muted-foreground shrink-0" />
-          <SelectValue placeholder="Select campaign" />
-        </div>
+        <Megaphone className="h-4 w-4 text-muted-foreground shrink-0" />
+        <SelectValue placeholder="Select campaign" />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="__campaigns__">

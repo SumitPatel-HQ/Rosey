@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { ProductCard } from "@/components/dashboard/product-card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Plus, Zap } from "lucide-react";
+import { Plus } from "lucide-react";
+import Image from "next/image";
 
 interface ProductWithCounts {
   id: string;
@@ -36,7 +37,7 @@ export default function DashboardPage() {
       <header className="border-b">
         <div className="container mx-auto flex h-14 items-center justify-between px-6">
           <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
+            <Image src="/rose_logo.png" alt="Rosey" width={28} height={28} />
             <span className="font-semibold text-lg">Rosey</span>
           </div>
           <ThemeToggle />
@@ -95,6 +96,9 @@ export default function DashboardPage() {
                 leadCount={product.leads?.[0]?.count ?? 0}
                 campaignCount={product.campaigns?.[0]?.count ?? 0}
                 createdAt={product.created_at}
+                onDelete={(deletedId) =>
+                  setProducts((prev) => prev.filter((p) => p.id !== deletedId))
+                }
               />
             ))}
           </div>

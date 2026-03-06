@@ -58,6 +58,8 @@ function WaitNodeComponent({ id, data }: NodeProps<WaitNodeType>) {
             value={(data.unit as string) || "days"}
             onChange={(e) => handleUnit(e.target.value)}
           >
+            <option value="seconds">Seconds</option>
+            <option value="minutes">Minutes</option>
             <option value="hours">Hours</option>
             <option value="days">Days</option>
           </select>

@@ -91,7 +91,7 @@ export interface SendEmailNodeData {
 
 export interface WaitNodeData {
   duration: number;
-  unit: "hours" | "days";
+  unit: "seconds" | "minutes" | "hours" | "days";
   [key: string]: unknown;
 }
 

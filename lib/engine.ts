@@ -54,7 +54,13 @@ function getWaitDelayMs(node: ParsedWorkflowNode): number {
 
   const duration = Number(node.data.duration) || 1;
   const unit = String(node.data.unit || "days");
-  return duration * (unit === "hours" ? 3600000 : 86400000);
+  const unitToMs: Record<string, number> = {
+    seconds: 1000,
+    minutes: 60000,
+    hours: 3600000,
+    days: 86400000,
+  };
+  return duration * (unitToMs[unit] || unitToMs.days);
 }
 
 function getPromptText(node: WorkflowNode, key: "subject_prompt" | "body_prompt") {
@@ -78,6 +84,7 @@ interface CampaignExecutionContext {
   campaign: Campaign;
   campaignLead: CampaignLead;
   lead: Lead;
+  productDescription?: string;
   threadId?: string;
   replied: boolean;
 }
@@ -100,7 +107,8 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
           subject_prompt: subjectPrompt,
           body_prompt: bodyPrompt,
         },
-        context.lead
+        context.lead,
+        context.productDescription
       );
 
       const sent = await sendEmail(
@@ -200,7 +208,8 @@ async function processCampaignLead(
   supabase: ReturnType<typeof getSupabase>,
   campaign: Campaign,
   campaignLead: CampaignLead,
-  parsedWorkflow: ParsedWorkflow
+  parsedWorkflow: ParsedWorkflow,
+  productDescription?: string
 ) {
   if (!campaignLead.lead) {
     throw new Error(`Lead ${campaignLead.lead_id} not loaded`);
@@ -213,6 +222,7 @@ async function processCampaignLead(
       campaign,
       campaignLead,
       lead: campaignLead.lead,
+      productDescription,
       threadId: campaignLead.thread_id || undefined,
       replied: campaignLead.replied ?? false,
     },
@@ -272,6 +282,16 @@ export async function processActiveCampaigns(): Promise<{
     return { processed: 0, errors: 0 };
   }
 
+  // Pre-fetch products to get descriptions
+  const productIds = [...new Set((activeCampaigns as Campaign[]).map((c) => c.product_id))];
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, description")
+    .in("id", productIds);
+  const productDescriptionMap = new Map<string, string>(
+    (products || []).map((p: { id: string; description: string | null }) => [p.id, p.description || ""])
+  );
+
   for (const campaign of activeCampaigns as Campaign[]) {
     let parsedWorkflow: ParsedWorkflow;
     try {
@@ -283,6 +303,8 @@ export async function processActiveCampaigns(): Promise<{
     }
 
     const nowIso = new Date().toISOString();
+    const productDescription = productDescriptionMap.get(campaign.product_id) || undefined;
+
     const { data: pendingLeads, error: leadsError } = await supabase
       .from("campaign_leads")
       .select("*, lead:leads(*)")
@@ -305,7 +327,8 @@ export async function processActiveCampaigns(): Promise<{
           supabase,
           campaign,
           campaignLead,
-          parsedWorkflow
+          parsedWorkflow,
+          productDescription
         );
       } catch (error) {
         console.error(`Error processing campaign_lead ${campaignLead.id}:`, error);

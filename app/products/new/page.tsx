@@ -26,14 +26,14 @@ export default function NewProductPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !description.trim()) return;
 
     setCreating(true);
     try {
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), description: description.trim() || null }),
+        body: JSON.stringify({ name: name.trim(), description: description.trim() }),
       });
 
       if (!res.ok) {
@@ -87,16 +87,17 @@ export default function NewProductPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description (optional)</Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   placeholder="Brief description of this product..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
+                  required
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={creating || !name.trim()}>
+              <Button type="submit" className="w-full" disabled={creating || !name.trim() || !description.trim()}>
                 {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Create Product
               </Button>

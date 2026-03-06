@@ -22,68 +22,73 @@ const accentStyles: Record<
 > = {
   emerald: {
     shell:
-      "border-slate-200 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-slate-800 dark:bg-slate-950",
-    iconWrap: "bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800",
-    icon: "text-slate-700 dark:text-slate-200",
-    eyebrow: "text-slate-500 dark:text-slate-400",
+      "border-emerald-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-emerald-900/60 dark:bg-slate-950",
+    iconWrap: "bg-emerald-100 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:ring-emerald-900/60",
+    icon: "text-emerald-600 dark:text-emerald-300",
+    eyebrow: "text-emerald-700/80 dark:text-emerald-300/80",
     title: "text-slate-950 dark:text-slate-50",
-    handle: "!bg-slate-900 dark:!bg-slate-100",
-    softHandle: "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+    handle: "!bg-emerald-600 dark:!bg-emerald-300",
+    softHandle:
+      "border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300",
     input:
-      "border-slate-200 bg-white focus:border-slate-400 focus:ring-slate-300/30 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-slate-600",
-    badge: "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-200",
+      "border-slate-200 bg-white focus:border-emerald-300 focus:ring-emerald-200/40 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-emerald-700",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
   },
   blue: {
     shell:
-      "border-slate-200 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-slate-800 dark:bg-slate-950",
-    iconWrap: "bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800",
-    icon: "text-slate-700 dark:text-slate-200",
-    eyebrow: "text-slate-500 dark:text-slate-400",
+      "border-blue-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-blue-900/60 dark:bg-slate-950",
+    iconWrap: "bg-blue-100 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:ring-blue-900/60",
+    icon: "text-blue-600 dark:text-blue-300",
+    eyebrow: "text-blue-700/80 dark:text-blue-300/80",
     title: "text-slate-950 dark:text-slate-50",
-    handle: "!bg-slate-900 dark:!bg-slate-100",
-    softHandle: "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+    handle: "!bg-blue-600 dark:!bg-blue-300",
+    softHandle:
+      "border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300",
     input:
-      "border-slate-200 bg-white focus:border-slate-400 focus:ring-slate-300/30 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-slate-600",
-    badge: "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-200",
+      "border-slate-200 bg-white focus:border-blue-300 focus:ring-blue-200/40 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-blue-700",
+    badge: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
   },
   amber: {
     shell:
-      "border-slate-200 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-slate-800 dark:bg-slate-950",
-    iconWrap: "bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800",
-    icon: "text-slate-700 dark:text-slate-200",
-    eyebrow: "text-slate-500 dark:text-slate-400",
+      "border-amber-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-amber-900/60 dark:bg-slate-950",
+    iconWrap: "bg-amber-100 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-900/60",
+    icon: "text-amber-600 dark:text-amber-300",
+    eyebrow: "text-amber-700/80 dark:text-amber-300/80",
     title: "text-slate-950 dark:text-slate-50",
-    handle: "!bg-slate-900 dark:!bg-slate-100",
-    softHandle: "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+    handle: "!bg-amber-600 dark:!bg-amber-300",
+    softHandle:
+      "border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300",
     input:
-      "border-slate-200 bg-white focus:border-slate-400 focus:ring-slate-300/30 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-slate-600",
-    badge: "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-200",
+      "border-slate-200 bg-white focus:border-amber-300 focus:ring-amber-200/40 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-amber-700",
+    badge: "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
   },
   violet: {
     shell:
-      "border-slate-200 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-slate-800 dark:bg-slate-950",
-    iconWrap: "bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800",
-    icon: "text-slate-700 dark:text-slate-200",
-    eyebrow: "text-slate-500 dark:text-slate-400",
+      "border-purple-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-purple-900/60 dark:bg-slate-950",
+    iconWrap: "bg-purple-100 ring-1 ring-purple-200 dark:bg-purple-950/40 dark:ring-purple-900/60",
+    icon: "text-purple-600 dark:text-purple-300",
+    eyebrow: "text-purple-700/80 dark:text-purple-300/80",
     title: "text-slate-950 dark:text-slate-50",
-    handle: "!bg-slate-900 dark:!bg-slate-100",
-    softHandle: "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+    handle: "!bg-purple-600 dark:!bg-purple-300",
+    softHandle:
+      "border-purple-200 bg-purple-100 text-purple-700 dark:border-purple-900/60 dark:bg-purple-950/40 dark:text-purple-300",
     input:
-      "border-slate-200 bg-white focus:border-slate-400 focus:ring-slate-300/30 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-slate-600",
-    badge: "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-200",
+      "border-slate-200 bg-white focus:border-purple-300 focus:ring-purple-200/40 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-purple-700",
+    badge: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300",
   },
   rose: {
     shell:
-      "border-slate-200 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-slate-800 dark:bg-slate-950",
-    iconWrap: "bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800",
-    icon: "text-slate-700 dark:text-slate-200",
-    eyebrow: "text-slate-500 dark:text-slate-400",
+      "border-red-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-red-900/60 dark:bg-slate-950",
+    iconWrap: "bg-red-100 ring-1 ring-red-200 dark:bg-red-950/40 dark:ring-red-900/60",
+    icon: "text-red-600 dark:text-red-300",
+    eyebrow: "text-red-700/80 dark:text-red-300/80",
     title: "text-slate-950 dark:text-slate-50",
-    handle: "!bg-slate-900 dark:!bg-slate-100",
-    softHandle: "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+    handle: "!bg-red-600 dark:!bg-red-300",
+    softHandle:
+      "border-red-200 bg-red-100 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300",
     input:
-      "border-slate-200 bg-white focus:border-slate-400 focus:ring-slate-300/30 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-slate-600",
-    badge: "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-200",
+      "border-slate-200 bg-white focus:border-red-300 focus:ring-red-200/40 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-red-700",
+    badge: "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300",
   },
 };
 

@@ -8,7 +8,8 @@ const openai = new OpenAI({
 
 export async function generateMessage(
   nodeData: SendEmailNodeData,
-  lead: Lead
+  lead: Lead,
+  productDescription?: string
 ): Promise<{ subject: string; body: string }> {
   const interpolate = (text: string) =>
     text
@@ -27,6 +28,7 @@ export async function generateMessage(
         role: "system",
         content:
           "You are an expert B2B outreach copywriter. Write concise, personalized, professional emails. " +
+          (productDescription ? `The product being promoted is: ${productDescription}. ` : "") +
           "Respond with JSON: {\"subject\": \"...\", \"body\": \"<html>...</html>\"}. " +
           "The body should be valid HTML suitable for email. Keep it brief (3-5 sentences).",
       },

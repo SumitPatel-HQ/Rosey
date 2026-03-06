@@ -6,12 +6,13 @@ import { ProductSelector } from "@/components/product-selector";
 import { CampaignSelector } from "@/components/campaign-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator";
-import { Users, Megaphone, Zap } from "lucide-react";
+import { Users, Megaphone } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Leads", href: "/leads", icon: Users },
   { label: "Campaigns", href: "/campaigns", icon: Megaphone },
+  { label: "Leads List", href: "/leads", icon: Users },
 ];
 
 export default function ProductLayout({
@@ -32,7 +33,7 @@ export default function ProductLayout({
         <div className="flex h-14 items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <Zap className="h-5 w-5 text-primary" />
+              <Image src="/rose_logo.png" alt="Rosey" width={28} height={28} />
               <span className="font-semibold text-lg">Rosey</span>
             </Link>
             <Separator orientation="vertical" className="h-6" />
