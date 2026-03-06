@@ -438,6 +438,44 @@ async function processCampaignLead(
   return outcome.steps;
 }
 
+async function sweepRepliedLeads(
+  supabase: ReturnType<typeof getSupabase>
+): Promise<void> {
+  // Find all waiting leads that have a thread but haven't been marked as replied yet
+  const { data: waitingLeads, error } = await supabase
+    .from("campaign_leads")
+    .select("id, thread_id")
+    .eq("status", "waiting")
+    .eq("replied", false)
+    .not("thread_id", "is", null);
+
+  if (error || !waitingLeads?.length) return;
+
+  const { hasThreadReceivedReply } = await import("@/lib/gmail");
+  const senderEmail = process.env.GMAIL_USER_EMAIL!;
+
+  for (const cl of waitingLeads) {
+    if (!cl.thread_id) continue;
+    try {
+      const hasReply = await hasThreadReceivedReply(cl.thread_id, senderEmail);
+      if (hasReply) {
+        // Mark as replied and accelerate — set next_action_time to now so the
+        // engine picks it up in the current (or next) sweep instead of waiting
+        // for the full wait-node timer to expire.
+        await supabase
+          .from("campaign_leads")
+          .update({
+            replied: true,
+            next_action_time: new Date().toISOString(),
+          })
+          .eq("id", cl.id);
+      }
+    } catch {
+      // Non-fatal — will be retried on the next sweep
+    }
+  }
+}
+
 export async function processActiveCampaigns(): Promise<{
   processed: number;
   errors: number;
@@ -445,6 +483,10 @@ export async function processActiveCampaigns(): Promise<{
   const supabase = getSupabase();
   let processed = 0;
   let errors = 0;
+
+  // Proactively detect replies on all waiting leads so analytics reflects them
+  // immediately and leads are accelerated to the front of the queue.
+  await sweepRepliedLeads(supabase);
 
   const { data: activeCampaigns, error: campaignError } = await supabase
     .from("campaigns")
