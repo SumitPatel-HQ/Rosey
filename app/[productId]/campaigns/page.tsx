@@ -46,7 +46,6 @@ interface CampaignWithCounts extends Campaign {
 const statusColors: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700",
   active: "bg-green-100 text-green-700",
-  paused: "bg-amber-100 text-amber-700",
   completed: "bg-blue-100 text-blue-700",
 };
 

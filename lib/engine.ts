@@ -158,20 +158,20 @@ function getWaitDelayMs(node: ParsedWorkflowNode): number {
   return duration * (unitToMs[unit] || unitToMs.days);
 }
 
-function getPromptText(node: WorkflowNode, key: "subject_prompt" | "body_prompt") {
-  const value = node.data[key];
-  if (typeof value === "string" && value.trim()) {
-    return value;
+function getEmailPrompt(node: WorkflowNode): string {
+  // New single-prompt field
+  if (typeof node.data.prompt === "string" && node.data.prompt.trim()) {
+    return node.data.prompt;
   }
-
+  // Legacy fallback: combine old subject_prompt + body_prompt
+  const parts = [
+    typeof node.data.subject_prompt === "string" ? node.data.subject_prompt : "",
+    typeof node.data.body_prompt === "string" ? node.data.body_prompt : "",
+  ].filter(Boolean);
+  if (parts.length) return parts.join(". ");
+  // Last-resort fallback
   const template = typeof node.data.template === "string" ? node.data.template : "";
-  if (!template) {
-    return key === "subject_prompt" ? "Outreach email" : "";
-  }
-
-  return key === "subject_prompt"
-    ? `Write a concise ${template} email subject line`
-    : `Write a ${template} outreach email for this lead`;
+  return template ? `Write a ${template} outreach email` : "Write a professional outreach email";
 }
 
 interface CampaignExecutionContext {
@@ -194,27 +194,76 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
   },
 
   send_email: async (node, context) => {
-    const subjectPrompt = getPromptText(node, "subject_prompt");
-    const bodyPrompt = getPromptText(node, "body_prompt");
+    const prompt = getEmailPrompt(node);
+    const mode =
+      typeof node.data.mode === "string" && node.data.mode === "same_for_all"
+        ? "same_for_all"
+        : "personalized";
+
     let threadId = context.threadId;
     let threadSubject = context.threadSubject;
     let lastMessageId = context.lastMessageId;
+
     const { sendEmail, applyLabelToMessage, applyLabelToThread } = await import("@/lib/gmail");
     const { generateMessage } = await import("@/lib/openai");
-    const message = await generateMessage(
-      {
-        subject_prompt: subjectPrompt,
-        body_prompt: bodyPrompt,
-      },
-      context.lead,
-      context.productDescription
-    );
-    const subject = threadSubject || message.subject;
+
+    const interpolate = (text: string) =>
+      text
+        .replace(/\{\{name\}\}/g, context.lead.name)
+        .replace(/\{\{email\}\}/g, context.lead.email)
+        .replace(/\{\{company\}\}/g, context.lead.company || "your company")
+        .replace(/\{\{industry\}\}/g, context.lead.industry || "your industry");
+
+    let subject: string;
+    let htmlBody: string;
+    let cacheHit = false;
+
+    if (mode === "same_for_all") {
+      const cachedSubject =
+        typeof node.data.cached_subject === "string" ? node.data.cached_subject : null;
+      const cachedBody =
+        typeof node.data.cached_body === "string" ? node.data.cached_body : null;
+
+      if (cachedSubject && cachedBody) {
+        // Cache hit — substitute placeholders for this specific lead
+        cacheHit = true;
+        subject = threadSubject || interpolate(cachedSubject);
+        htmlBody = interpolate(cachedBody);
+      } else {
+        // Cache miss — generate once, then persist it back into workflow_json
+        const message = await generateMessage(prompt, null, context.productDescription);
+
+        // Mutate node.data in-memory so remaining leads in this batch skip generation
+        node.data.cached_subject = message.subject;
+        node.data.cached_body = message.body;
+
+        // Persist the cache into campaign.workflow_json in Supabase
+        const updatedNodes = context.campaign.workflow_json.nodes.map((n) =>
+          n.id === node.id
+            ? { ...n, data: { ...n.data, cached_subject: message.subject, cached_body: message.body } }
+            : n
+        );
+        const updatedWorkflow = { ...context.campaign.workflow_json, nodes: updatedNodes };
+        await context.supabase
+          .from("campaigns")
+          .update({ workflow_json: updatedWorkflow })
+          .eq("id", context.campaign.id);
+        context.campaign.workflow_json = updatedWorkflow;
+
+        subject = threadSubject || interpolate(message.subject);
+        htmlBody = interpolate(message.body);
+      }
+    } else {
+      // Personalized — unique email per lead
+      const message = await generateMessage(prompt, context.lead, context.productDescription);
+      subject = threadSubject || message.subject;
+      htmlBody = message.body;
+    }
 
     const sent = await sendEmail({
       to: context.lead.email,
       subject,
-      htmlBody: message.body,
+      htmlBody,
       threadId,
       replyToMessageId: lastMessageId,
     });
@@ -246,7 +295,8 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
       "send_email",
       "success",
       {
-        subject_prompt: subjectPrompt,
+        mode,
+        cache_hit: cacheHit,
         thread_subject: threadSubject,
         thread_id: threadId,
         last_message_id: lastMessageId,

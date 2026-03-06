@@ -24,7 +24,7 @@ export interface Campaign {
   product_id: string;
   name: string;
   workflow_json: WorkflowJSON;
-  status: "draft" | "active" | "paused" | "completed";
+  status: "draft" | "active" | "completed";
   gmail_label_id: string | null;
   created_at: string;
   product?: Product;
@@ -87,8 +87,10 @@ export interface WorkflowEdge {
 }
 
 export interface SendEmailNodeData {
-  subject_prompt: string;
-  body_prompt: string;
+  prompt: string;
+  mode: "personalized" | "same_for_all";
+  cached_subject?: string;
+  cached_body?: string;
   [key: string]: unknown;
 }
 

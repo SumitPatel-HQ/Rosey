@@ -6,5 +6,5 @@ export default async function ProductPage({
   params: Promise<{ productId: string }>;
 }) {
   const { productId } = await params;
-  redirect(`/${productId}/leads`);
+  redirect(`/${productId}/campaigns`);
 }
