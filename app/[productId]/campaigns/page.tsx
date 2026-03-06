@@ -1,0 +1,189 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, Megaphone, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import type { Campaign } from "@/types";
+
+interface CampaignWithCounts extends Campaign {
+  campaign_leads: [{ count: number }];
+}
+
+const statusColors: Record<string, string> = {
+  draft: "bg-gray-100 text-gray-700",
+  active: "bg-green-100 text-green-700",
+  paused: "bg-amber-100 text-amber-700",
+  completed: "bg-blue-100 text-blue-700",
+};
+
+export default function CampaignsPage() {
+  const params = useParams();
+  const router = useRouter();
+  const productId = params.productId as string;
+  const [campaigns, setCampaigns] = useState<CampaignWithCounts[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  function fetchCampaigns() {
+    setLoading(true);
+    fetch(`/api/campaigns?productId=${productId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setCampaigns(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    fetchCampaigns();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newName.trim()) return;
+
+    setCreating(true);
+    try {
+      const res = await fetch("/api/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: productId, name: newName.trim() }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error);
+      }
+
+      const campaign = await res.json();
+      setDialogOpen(false);
+      setNewName("");
+      router.push(`/${productId}/campaigns/${campaign.id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create campaign");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Create and manage outreach campaigns
+          </p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Campaign
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Campaign</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="campaign-name">Campaign Name</Label>
+                <Input
+                  id="campaign-name"
+                  placeholder="e.g. my-workflow-1"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={creating || !newName.trim()}
+              >
+                {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Create & Open Builder
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-[120px] rounded-xl border bg-muted/30 animate-pulse"
+            />
+          ))}
+        </div>
+      ) : campaigns.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
+            <Megaphone className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-lg font-semibold">No campaigns yet</h2>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+            Create your first campaign to build a workflow and start outreach.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {campaigns.map((campaign) => (
+            <Card
+              key={campaign.id}
+              className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30"
+              onClick={() =>
+                router.push(`/${productId}/campaigns/${campaign.id}`)
+              }
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">{campaign.name}</CardTitle>
+                  <Badge
+                    className={`text-xs ${statusColors[campaign.status] || ""}`}
+                    variant="secondary"
+                  >
+                    {campaign.status}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {campaign.campaign_leads?.[0]?.count ?? 0} leads assigned
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Created {new Date(campaign.created_at).toLocaleDateString()}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
