@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   const productData: Record<string, unknown> = {
     name: body.name,
     description: body.description || null,
-    gmail_label_prefix: `NeuralNexus/${body.name}`,
+    gmail_label_prefix: `Rosey/${body.name}`,
   };
 
   const { data, error } = await supabase

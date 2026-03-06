@@ -5,6 +5,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   Controls,
+  MiniMap,
   Background,
   BackgroundVariant,
   useReactFlow,
@@ -50,7 +51,7 @@ function WorkflowCanvasInner() {
   return (
     <div className="flex h-full">
       <NodePalette />
-      <div className="flex-1">
+      <div className="flex-1 h-full">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -61,10 +62,12 @@ function WorkflowCanvasInner() {
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
           fitView
+          fitViewOptions={{ padding: 0.4 }}
           deleteKeyCode={["Backspace", "Delete"]}
           className="bg-slate-50 dark:bg-slate-950"
         >
           <Controls />
+          <MiniMap />
           <Background
             variant={BackgroundVariant.Dots}
             gap={20}

@@ -51,13 +51,13 @@ export async function createProductSheet(
   const parentFolder = process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID;
 
   const folderId = await createDriveFolder(
-    `NeuralNexus / ${productName}`,
+    `Rosey / ${productName}`,
     parentFolder || undefined
   );
 
   const res = await sheets.spreadsheets.create({
     requestBody: {
-      properties: { title: `${productName} - NeuralNexus` },
+      properties: { title: `${productName} - Rosey` },
       sheets: [
         { properties: { title: "Leads" } },
         { properties: { title: "Campaigns" } },

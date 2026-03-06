@@ -62,7 +62,15 @@ export interface WorkflowJSON {
 
 export interface WorkflowNode {
   id: string;
-  type: "start" | "send_email" | "wait" | "condition" | "end";
+  type:
+    | "start"
+    | "send_email"
+    | "sendEmail"
+    | "wait"
+    | "condition"
+    | "checkReply"
+    | "sendFollowup"
+    | "end";
   position: { x: number; y: number };
   data: Record<string, unknown>;
 }
@@ -72,6 +80,7 @@ export interface WorkflowEdge {
   source: string;
   target: string;
   sourceHandle?: string;
+  condition?: string;
 }
 
 export interface SendEmailNodeData {

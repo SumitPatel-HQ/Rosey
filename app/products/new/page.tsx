@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,7 +53,7 @@ export default function NewProductPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="container mx-auto flex h-14 items-center px-6">
+        <div className="container mx-auto flex h-14 items-center justify-between px-6">
           <Link
             href="/"
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -60,6 +61,7 @@ export default function NewProductPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to Products
           </Link>
+          <ThemeToggle />
         </div>
       </header>
 

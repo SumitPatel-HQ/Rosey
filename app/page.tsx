@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ProductCard } from "@/components/dashboard/product-card";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Plus, Zap } from "lucide-react";
 
@@ -36,8 +37,9 @@ export default function DashboardPage() {
         <div className="container mx-auto flex h-14 items-center justify-between px-6">
           <div className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-lg">NeuralNexus</span>
+            <span className="font-semibold text-lg">Rosey</span>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 
