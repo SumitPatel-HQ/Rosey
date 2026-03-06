@@ -97,9 +97,7 @@ function BuilderInner() {
             ? String(data.email_rate_limit_per_hour)
             : ""
         );
-        if (data.workflow_json?.nodes?.length) {
-          loadWorkflow(data.workflow_json.nodes, data.workflow_json.edges || []);
-        }
+        loadWorkflow(data.workflow_json?.nodes || [], data.workflow_json?.edges || []);
         loadedRef.current = true;
       })
        .catch(() => toast.error("Failed to load campaign"));
