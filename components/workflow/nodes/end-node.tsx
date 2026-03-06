@@ -2,11 +2,14 @@
 
 import { memo } from "react";
 import { Square } from "lucide-react";
+import { type NodeProps, type Node } from "@xyflow/react";
 import { NodeShell } from "./node-shell";
 
-function EndNodeComponent() {
+function EndNodeComponent({ id, selected }: NodeProps<Node>) {
   return (
     <NodeShell
+      id={id}
+      selected={selected}
       accent="rose"
       icon={Square}
       eyebrow="Exit Point"

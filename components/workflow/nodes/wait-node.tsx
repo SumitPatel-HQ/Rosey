@@ -8,7 +8,7 @@ import { NodeShell, nodeBadgeClassName, nodeInputClassName } from "./node-shell"
 
 type WaitNodeType = Node<WaitNodeData, "wait">;
 
-function WaitNodeComponent({ id, data }: NodeProps<WaitNodeType>) {
+function WaitNodeComponent({ id, data, selected }: NodeProps<WaitNodeType>) {
   const { updateNodeData } = useReactFlow();
 
   const handleDuration = useCallback(
@@ -28,6 +28,8 @@ function WaitNodeComponent({ id, data }: NodeProps<WaitNodeType>) {
 
   return (
     <NodeShell
+      id={id}
+      selected={selected}
       accent="amber"
       icon={Clock}
       eyebrow="Timing"

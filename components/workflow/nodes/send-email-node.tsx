@@ -8,7 +8,7 @@ import { NodeShell, nodeInputClassName } from "./node-shell";
 
 type SendEmailNodeType = Node<SendEmailNodeData, "send_email">;
 
-function SendEmailNodeComponent({ id, data }: NodeProps<SendEmailNodeType>) {
+function SendEmailNodeComponent({ id, data, selected }: NodeProps<SendEmailNodeType>) {
   const { updateNodeData } = useReactFlow();
 
   const handleChange = useCallback(
@@ -20,6 +20,8 @@ function SendEmailNodeComponent({ id, data }: NodeProps<SendEmailNodeType>) {
 
   return (
     <NodeShell
+      id={id}
+      selected={selected}
       accent="blue"
       icon={Mail}
       eyebrow="Outreach"

@@ -1,7 +1,8 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Handle, Position } from "@xyflow/react";
+import { Trash2 } from "lucide-react";
+import { Handle, Position, NodeToolbar, useReactFlow } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 
 type Accent = "emerald" | "blue" | "amber" | "violet" | "rose";
@@ -10,6 +11,7 @@ const accentStyles: Record<
   Accent,
   {
     shell: string;
+    selectedRing: string;
     iconWrap: string;
     icon: string;
     eyebrow: string;
@@ -23,6 +25,7 @@ const accentStyles: Record<
   emerald: {
     shell:
       "border-emerald-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-emerald-900/60 dark:bg-slate-950",
+    selectedRing: "ring-2 ring-emerald-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-emerald-100 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:ring-emerald-900/60",
     icon: "text-emerald-600 dark:text-emerald-300",
     eyebrow: "text-emerald-700/80 dark:text-emerald-300/80",
@@ -37,6 +40,7 @@ const accentStyles: Record<
   blue: {
     shell:
       "border-blue-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-blue-900/60 dark:bg-slate-950",
+    selectedRing: "ring-2 ring-blue-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-blue-100 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:ring-blue-900/60",
     icon: "text-blue-600 dark:text-blue-300",
     eyebrow: "text-blue-700/80 dark:text-blue-300/80",
@@ -51,6 +55,7 @@ const accentStyles: Record<
   amber: {
     shell:
       "border-amber-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-amber-900/60 dark:bg-slate-950",
+    selectedRing: "ring-2 ring-amber-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-amber-100 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:ring-amber-900/60",
     icon: "text-amber-600 dark:text-amber-300",
     eyebrow: "text-amber-700/80 dark:text-amber-300/80",
@@ -65,6 +70,7 @@ const accentStyles: Record<
   violet: {
     shell:
       "border-purple-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-purple-900/60 dark:bg-slate-950",
+    selectedRing: "ring-2 ring-violet-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-purple-100 ring-1 ring-purple-200 dark:bg-purple-950/40 dark:ring-purple-900/60",
     icon: "text-purple-600 dark:text-purple-300",
     eyebrow: "text-purple-700/80 dark:text-purple-300/80",
@@ -79,6 +85,7 @@ const accentStyles: Record<
   rose: {
     shell:
       "border-red-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-red-900/60 dark:bg-slate-950",
+    selectedRing: "ring-2 ring-rose-500/70 ring-offset-2 dark:ring-offset-slate-950",
     iconWrap: "bg-red-100 ring-1 ring-red-200 dark:bg-red-950/40 dark:ring-red-900/60",
     icon: "text-red-600 dark:text-red-300",
     eyebrow: "text-red-700/80 dark:text-red-300/80",
@@ -104,6 +111,8 @@ interface NodeShellProps {
   minWidthClassName?: string;
   targetHandle?: boolean;
   sourceHandle?: boolean;
+  id?: string;
+  selected?: boolean;
 }
 
 export function nodeInputClassName(accent: Accent) {
@@ -139,15 +148,31 @@ export function NodeShell({
   minWidthClassName = "min-w-[240px]",
   targetHandle = true,
   sourceHandle = true,
+  id,
+  selected = false,
 }: NodeShellProps) {
   const styles = accentStyles[accent];
+  const { deleteElements } = useReactFlow();
 
   return (
+    <>
+      {id ? (
+        <NodeToolbar isVisible={selected} position={Position.Top} align="end" offset={6}>
+          <button
+            onClick={() => deleteElements({ nodes: [{ id }] })}
+            className="flex items-center gap-1.5 rounded-xl bg-red-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-md transition hover:bg-red-600 active:scale-95"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete
+          </button>
+        </NodeToolbar>
+      ) : null}
     <div
       className={cn(
-        "relative overflow-visible rounded-[24px] border px-4 py-4 transition-shadow",
+        "relative overflow-visible rounded-[24px] border px-4 py-4 transition-all",
         minWidthClassName,
         styles.shell,
+        selected && styles.selectedRing,
         className
       )}
     >
@@ -197,5 +222,6 @@ export function NodeShell({
         />
       ) : null}
     </div>
+    </>
   );
 }

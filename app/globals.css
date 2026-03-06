@@ -124,3 +124,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Suppress ReactFlow's default selected-node outline; we use our own ring */
+.react-flow__node.selected > * {
+  box-shadow: none !important;
+  outline: none !important;
+}

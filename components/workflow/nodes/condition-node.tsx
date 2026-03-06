@@ -12,7 +12,7 @@ import {
 
 type ConditionNodeType = Node<ConditionNodeData, "condition">;
 
-function ConditionNodeComponent({ id, data }: NodeProps<ConditionNodeType>) {
+function ConditionNodeComponent({ id, data, selected }: NodeProps<ConditionNodeType>) {
   const { updateNodeData } = useReactFlow();
 
   const handleCheck = useCallback(
@@ -24,6 +24,8 @@ function ConditionNodeComponent({ id, data }: NodeProps<ConditionNodeType>) {
 
   return (
     <NodeShell
+      id={id}
+      selected={selected}
       accent="violet"
       icon={GitBranch}
       eyebrow="Decision"
