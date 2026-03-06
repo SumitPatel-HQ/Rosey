@@ -62,10 +62,16 @@ function WorkflowCanvasInner() {
           nodeTypes={nodeTypes}
           fitView
           deleteKeyCode={["Backspace", "Delete"]}
-          className="bg-background"
+          className="bg-slate-50 dark:bg-slate-950"
         >
           <Controls />
-          <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={20}
+            size={1.2}
+            color="currentColor"
+            className="text-slate-300/70 dark:text-slate-700/80"
+          />
         </ReactFlow>
       </div>
     </div>

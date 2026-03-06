@@ -16,7 +16,6 @@ CREATE TABLE leads (
   company TEXT,
   industry TEXT,
   tags TEXT[] DEFAULT '{}',
-  contacted BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(product_id, email)
 );

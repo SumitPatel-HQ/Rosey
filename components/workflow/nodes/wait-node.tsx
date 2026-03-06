@@ -1,9 +1,10 @@
 "use client";
 
 import { memo, useCallback } from "react";
-import { Handle, Position, useReactFlow, type NodeProps, type Node } from "@xyflow/react";
+import { useReactFlow, type NodeProps, type Node } from "@xyflow/react";
 import { Clock } from "lucide-react";
 import type { WaitNodeData } from "@/types";
+import { NodeShell, nodeBadgeClassName, nodeInputClassName } from "./node-shell";
 
 type WaitNodeType = Node<WaitNodeData, "wait">;
 
@@ -26,43 +27,49 @@ function WaitNodeComponent({ id, data }: NodeProps<WaitNodeType>) {
   );
 
   return (
-    <div className="rounded-lg border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 shadow-sm min-w-[180px]">
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="!w-3 !h-3 !bg-amber-500 !border-2 !border-white"
-      />
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-white">
-          <Clock className="h-3.5 w-3.5" />
-        </div>
-        <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
-          Wait
+    <NodeShell
+      accent="amber"
+      icon={Clock}
+      eyebrow="Timing"
+      title="Delay Step"
+      description="Pause the automation before continuing to the next action."
+      badge="Wait"
+      minWidthClassName="min-w-[280px]"
+    >
+      <div className="grid grid-cols-[88px_1fr] gap-2">
+        <label className="space-y-1">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+            Amount
+          </span>
+          <input
+            className={nodeInputClassName("amber")}
+            type="number"
+            min={1}
+            value={(data.duration as number) || 1}
+            onChange={(e) => handleDuration(e.target.value)}
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+            Unit
+          </span>
+          <select
+            className={nodeInputClassName("amber")}
+            value={(data.unit as string) || "days"}
+            onChange={(e) => handleUnit(e.target.value)}
+          >
+            <option value="hours">Hours</option>
+            <option value="days">Days</option>
+          </select>
+        </label>
+      </div>
+      <div className="flex items-center justify-between rounded-2xl bg-white/55 px-3 py-2 text-[11px] text-slate-600 ring-1 ring-black/5 dark:bg-slate-950/35 dark:text-slate-300 dark:ring-white/10">
+        <span>Next action resumes after the delay window closes.</span>
+        <span className={nodeBadgeClassName("amber")}>
+          {(data.duration as number) || 1} {(data.unit as string) || "days"}
         </span>
       </div>
-      <div className="flex items-center gap-2">
-        <input
-          className="nodrag w-16 rounded border border-amber-200 bg-white dark:bg-amber-950/50 px-2 py-1 text-xs text-center"
-          type="number"
-          min={1}
-          value={(data.duration as number) || 1}
-          onChange={(e) => handleDuration(e.target.value)}
-        />
-        <select
-          className="nodrag rounded border border-amber-200 bg-white dark:bg-amber-950/50 px-2 py-1 text-xs"
-          value={(data.unit as string) || "days"}
-          onChange={(e) => handleUnit(e.target.value)}
-        >
-          <option value="hours">hours</option>
-          <option value="days">days</option>
-        </select>
-      </div>
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="!w-3 !h-3 !bg-amber-500 !border-2 !border-white"
-      />
-    </div>
+    </NodeShell>
   );
 }
 

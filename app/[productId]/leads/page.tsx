@@ -46,7 +46,10 @@ export default function LeadsPage() {
           </div>
         </div>
       ) : (
-        <LeadsTable leads={leads} />
+        <LeadsTable
+          leads={leads}
+          onDeleted={(id) => setLeads((prev) => prev.filter((l) => l.id !== id))}
+        />
       )}
     </div>
   );

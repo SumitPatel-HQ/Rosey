@@ -16,7 +16,6 @@ export interface Lead {
   company: string | null;
   industry: string | null;
   tags: string[];
-  contacted: boolean;
   created_at: string;
 }
 

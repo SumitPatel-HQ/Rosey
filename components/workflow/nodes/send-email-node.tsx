@@ -1,9 +1,10 @@
 "use client";
 
 import { memo, useCallback } from "react";
-import { Handle, Position, useReactFlow, type NodeProps, type Node } from "@xyflow/react";
+import { useReactFlow, type NodeProps, type Node } from "@xyflow/react";
 import { Mail } from "lucide-react";
 import type { SendEmailNodeData } from "@/types";
+import { NodeShell, nodeInputClassName } from "./node-shell";
 
 type SendEmailNodeType = Node<SendEmailNodeData, "send_email">;
 
@@ -18,41 +19,39 @@ function SendEmailNodeComponent({ id, data }: NodeProps<SendEmailNodeType>) {
   );
 
   return (
-    <div className="rounded-lg border-2 border-blue-500 bg-blue-50 dark:bg-blue-950/30 px-4 py-3 shadow-sm min-w-[220px]">
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="!w-3 !h-3 !bg-blue-500 !border-2 !border-white"
-      />
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white">
-          <Mail className="h-3.5 w-3.5" />
-        </div>
-        <span className="text-sm font-semibold text-blue-700 dark:text-blue-400">
-          Send Email
+    <NodeShell
+      accent="blue"
+      icon={Mail}
+      eyebrow="Outreach"
+      title="Send AI Email"
+      description="Generate a subject line and body copy before sending the next message."
+      badge="Action"
+      minWidthClassName="min-w-[320px]"
+    >
+      <label className="block space-y-1">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+          Subject Prompt
         </span>
-      </div>
-      <div className="space-y-2">
         <input
-          className="nodrag w-full rounded border border-blue-200 bg-white dark:bg-blue-950/50 px-2 py-1 text-xs placeholder:text-muted-foreground"
-          placeholder="Subject prompt..."
+          className={nodeInputClassName("blue")}
+          placeholder="Write a concise subject line for a warm outbound follow-up"
           value={(data.subject_prompt as string) || ""}
           onChange={(e) => handleChange("subject_prompt", e.target.value)}
         />
+      </label>
+      <label className="block space-y-1">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+          Body Prompt
+        </span>
         <textarea
-          className="nodrag w-full rounded border border-blue-200 bg-white dark:bg-blue-950/50 px-2 py-1 text-xs placeholder:text-muted-foreground resize-none"
-          placeholder="Body prompt for AI..."
-          rows={2}
+          className={nodeInputClassName("blue")}
+          placeholder="Draft a short, credible email that references the lead's context and suggests a next step."
+          rows={4}
           value={(data.body_prompt as string) || ""}
           onChange={(e) => handleChange("body_prompt", e.target.value)}
         />
-      </div>
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="!w-3 !h-3 !bg-blue-500 !border-2 !border-white"
-      />
-    </div>
+      </label>
+    </NodeShell>
   );
 }
 

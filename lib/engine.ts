@@ -113,20 +113,27 @@ export async function processActiveCampaigns(): Promise<{ processed: number; err
   }
 
   for (const campaign of activeCampaigns as Campaign[]) {
+    const nowIso = new Date().toISOString();
     const { data: pendingLeads, error: plErr } = await supabase
       .from("campaign_leads")
       .select("*, lead:leads(*)")
       .eq("campaign_id", campaign.id)
       .in("status", ["queued", "waiting"])
-      .lte("next_action_time", new Date().toISOString())
-      .limit(50);
+      .limit(200);
 
     if (plErr || !pendingLeads?.length) continue;
+
+    const dueLeads = (pendingLeads as CampaignLead[]).filter((cl) => {
+      if (!cl.next_action_time) return true;
+      return cl.next_action_time <= nowIso;
+    });
+
+    if (!dueLeads.length) continue;
 
     const nodes = campaign.workflow_json.nodes as WorkflowNode[];
     const edges = campaign.workflow_json.edges as WorkflowEdge[];
 
-    for (const cl of pendingLeads as CampaignLead[]) {
+    for (const cl of dueLeads) {
       try {
         const currentNode = nodes.find((n) => n.id === cl.current_node_id);
         if (!currentNode) {

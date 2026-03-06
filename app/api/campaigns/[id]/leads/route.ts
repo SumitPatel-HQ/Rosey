@@ -49,12 +49,15 @@ export async function POST(
     (n: { type: string }) => n.type === "start"
   );
   const startNodeId = startNode?.id || "1";
+  const now = new Date().toISOString();
 
   const rows = leadIds.map((leadId) => ({
     campaign_id: id,
     lead_id: leadId,
     current_node_id: startNodeId,
     status: "queued" as const,
+    next_action_time: now,
+    last_action_time: now,
   }));
 
   const { data, error } = await supabase
@@ -65,12 +68,6 @@ export async function POST(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  // Mark leads as contacted
-  await supabase
-    .from("leads")
-    .update({ contacted: true })
-    .in("id", leadIds);
 
   return NextResponse.json({ assigned: data.length });
 }

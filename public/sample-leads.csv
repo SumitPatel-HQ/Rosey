@@ -1,11 +1,2 @@
 name,email,company,industry,tags
-Alice Johnson,alice@techcorp.io,TechCorp,SaaS,decision-maker
-Bob Smith,bob@dataflow.com,DataFlow,Analytics,cto
-Carol Williams,carol@cloudnine.ai,CloudNine AI,AI/ML,founder
-David Lee,david@finstack.co,FinStack,FinTech,vp-engineering
-Eva Martinez,eva@growthlab.io,GrowthLab,Marketing,head-of-growth
-Frank Chen,frank@devtools.dev,DevTools Inc,Developer Tools,ceo
-Grace Kim,grace@retailai.com,RetailAI,E-commerce,product-lead
-Hank Brown,hank@secureops.io,SecureOps,Cybersecurity,ciso
-Iris Patel,iris@healthtech.co,HealthTech,Healthcare,director
-Jack Wilson,jack@eduspark.com,EduSpark,EdTech,co-founder
+Aman Mehtar,askdzamanm@gmail.com,Deepmind,SaaS,decision-maker

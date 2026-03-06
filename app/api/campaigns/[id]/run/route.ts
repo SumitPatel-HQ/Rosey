@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { processActiveCampaigns } from "@/lib/engine";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -55,18 +56,17 @@ export async function POST(
       .filter((lid) => !alreadyAssigned.has(lid));
 
     if (newLeadIds.length > 0) {
+      const now = new Date().toISOString();
       const rows = newLeadIds.map((leadId) => ({
         campaign_id: id,
         lead_id: leadId,
         current_node_id: startNodeId,
         status: "queued" as const,
+        next_action_time: now,
+        last_action_time: now,
       }));
 
       await supabase.from("campaign_leads").insert(rows);
-      await supabase
-        .from("leads")
-        .update({ contacted: true })
-        .in("id", newLeadIds);
     }
   }
 
@@ -81,6 +81,12 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const engineResult = await processActiveCampaigns();
   const totalAssigned = allLeads?.length || 0;
-  return NextResponse.json({ ...data, leads_assigned: totalAssigned });
+  return NextResponse.json({
+    ...data,
+    leads_assigned: totalAssigned,
+    processed_now: engineResult.processed,
+    engine_errors: engineResult.errors,
+  });
 }

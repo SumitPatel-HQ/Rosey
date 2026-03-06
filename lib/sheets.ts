@@ -79,7 +79,7 @@ export async function createProductSheet(
 
   // Initialize header rows
   const headers: Record<string, string[]> = {
-    Leads: ["ID", "Name", "Email", "Company", "Industry", "Tags", "Contacted", "Created"],
+    Leads: ["ID", "Name", "Email", "Company", "Industry", "Tags", "Created"],
     Campaigns: ["ID", "Name", "Status", "Created"],
     Campaign_Leads: [
       "ID", "Campaign ID", "Lead ID", "Lead Name", "Lead Email",
@@ -121,7 +121,6 @@ export async function syncLeadsToSheet(
     l.company || "",
     l.industry || "",
     (l.tags || []).join(", "),
-    l.contacted ? "Yes" : "No",
     l.created_at,
   ]);
 
