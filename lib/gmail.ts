@@ -150,43 +150,49 @@ export async function hasThreadReceivedReply(
   });
 }
 
-function decodeMessageBody(
-  payload: {
-    mimeType?: string | null;
-    body?: { data?: string | null } | null;
-    parts?: typeof payload[] | null;
-  } | null | undefined
-): string {
-  if (!payload) return "";
+type GmailPart = {
+  mimeType?: string | null;
+  body?: { data?: string | null; size?: number | null } | null;
+  parts?: GmailPart[] | null;
+};
 
-  // Prefer text/html, fall back to text/plain
-  if (
-    payload.mimeType === "text/html" ||
-    payload.mimeType === "text/plain"
-  ) {
-    const data = payload.body?.data;
-    if (data) {
-      const decoded = Buffer.from(
-        data.replace(/-/g, "+").replace(/_/g, "/"),
-        "base64"
-      ).toString("utf-8");
-      if (payload.mimeType === "text/plain") {
-        return decoded.replace(/\n/g, "<br>");
-      }
-      return decoded;
+function decodeBase64(data: string): string {
+  return Buffer.from(
+    data.replace(/-/g, "+").replace(/_/g, "/"),
+    "base64"
+  ).toString("utf-8");
+}
+
+/**
+ * Walk a Gmail message part tree and return the best available HTML body.
+ * Strategy: depth-first, prefer text/html over text/plain.
+ */
+function extractBody(part: GmailPart | null | undefined): string {
+  if (!part) return "";
+
+  const mime = (part.mimeType || "").toLowerCase();
+
+  // Leaf node with data
+  if (part.body?.data) {
+    const decoded = decodeBase64(part.body.data);
+    if (mime.startsWith("text/plain")) {
+      return decoded.replace(/\n/g, "<br>");
     }
+    return decoded; // text/html or anything else with data
   }
 
-  if (payload.parts) {
-    // Try html part first
-    const htmlPart = payload.parts.find((p) => p?.mimeType === "text/html");
-    if (htmlPart) return decodeMessageBody(htmlPart);
-    // Fall back to text/plain
-    const textPart = payload.parts.find((p) => p?.mimeType === "text/plain");
-    if (textPart) return decodeMessageBody(textPart);
-    // Recurse into multipart
-    for (const part of payload.parts) {
-      const result = decodeMessageBody(part);
+  // Has child parts — search recursively
+  if (part.parts?.length) {
+    // 1st pass: prefer text/html anywhere in the tree
+    for (const child of part.parts) {
+      const childMime = (child.mimeType || "").toLowerCase();
+      if (childMime === "text/html" && child.body?.data) {
+        return decodeBase64(child.body.data);
+      }
+    }
+    // 2nd pass: recurse into sub-multiparts (handles multipart/mixed > multipart/alternative > text/html)
+    for (const child of part.parts) {
+      const result = extractBody(child);
       if (result) return result;
     }
   }
@@ -200,11 +206,30 @@ export async function getThreadMessages(
   const gmail = getGmailClient();
   const senderEmail = (process.env.GMAIL_USER_EMAIL || "").toLowerCase();
 
-  const res = await gmail.users.threads.get({
-    userId: "me",
-    id: threadId,
-    format: "full",
-  });
+  // Try "full" first; fall back to "metadata" if scope is restricted
+  let res;
+  let metadataOnly = false;
+  try {
+    res = await gmail.users.threads.get({
+      userId: "me",
+      id: threadId,
+      format: "full",
+    });
+  } catch (err: unknown) {
+    const gErr = err as { code?: number; status?: number };
+    if (gErr.code === 403 || gErr.status === 403) {
+      // Scope only allows metadata — fetch without bodies
+      metadataOnly = true;
+      res = await gmail.users.threads.get({
+        userId: "me",
+        id: threadId,
+        format: "metadata",
+        metadataHeaders: ["From", "To", "Subject", "Date"],
+      });
+    } else {
+      throw err;
+    }
+  }
 
   const messages = res.data.messages || [];
 
@@ -217,7 +242,7 @@ export async function getThreadMessages(
     const to = getHeader("to");
     const subject = getHeader("subject");
     const date = getHeader("date");
-    const body = decodeMessageBody(msg.payload as Parameters<typeof decodeMessageBody>[0]);
+    const body = metadataOnly ? "" : extractBody(msg.payload);
 
     const fromEmail = normalizeEmail(from) || "";
     const isOutbound = Boolean(

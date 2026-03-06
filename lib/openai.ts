@@ -14,11 +14,14 @@ const openai = new OpenAI({
  *                  When null the AI uses {{name}}, {{company}}, {{industry}} as literal
  *                  placeholders so one template can be substituted for every lead.
  * @param productDescription - Optional product context injected into the system prompt.
+ * @param options.senderEmail - The From address; injected so the AI never writes [Your Name].
+ * @param options.isFollowUp  - When true, instructs the AI this is a follow-up, not a cold intro.
  */
 export async function generateMessage(
   prompt: string,
   lead: Lead | null,
-  productDescription?: string
+  productDescription?: string,
+  options?: { senderEmail?: string; isFollowUp?: boolean }
 ): Promise<{ subject: string; body: string }> {
   const effectivePrompt = lead
     ? prompt
@@ -34,6 +37,17 @@ export async function generateMessage(
       }. Personalise the email specifically for them.`
     : "Write the email as a reusable template. Wherever you would reference the recipient's name, company, or industry, use the exact literal placeholders {{name}}, {{company}}, and {{industry}} instead of real values. Do NOT invent specific names or companies.";
 
+  const senderEmail = options?.senderEmail;
+  const isFollowUp = options?.isFollowUp ?? false;
+
+  const senderInstruction = senderEmail
+    ? `You are writing on behalf of ${senderEmail}. When signing off, use the name derived from that email address — never write placeholder text like [Your Name], [Sender], or similar.`
+    : "Never write placeholder text like [Your Name] or [Sender] in the sign-off.";
+
+  const followUpInstruction = isFollowUp
+    ? "This is a follow-up email in an ongoing thread — the recipient has not replied yet. Keep it short (2-3 sentences), reference the previous outreach briefly, and add urgency or a new angle based on the instructions below. Do NOT write a cold introduction."
+    : "This is the first email in an outreach sequence.";
+
   const completion = await openai.chat.completions.create({
     model: "gpt-5.3-chat",
     messages: [
@@ -42,6 +56,8 @@ export async function generateMessage(
         content:
           "You are an expert B2B outreach copywriter. " +
           (productDescription ? `The product being promoted is: ${productDescription}. ` : "") +
+          `${senderInstruction} ` +
+          `${followUpInstruction} ` +
           "Based on the user's instructions, generate both a subject line and an email body. " +
           'Respond with JSON: {"subject": "...", "body": "<html>...</html>"}. ' +
           "The body must be valid HTML suitable for email. Keep it concise (3-5 sentences).",

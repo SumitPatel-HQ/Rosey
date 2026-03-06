@@ -14,6 +14,7 @@ import "@xyflow/react/dist/style.css";
 import { useWorkflowStore } from "@/stores/workflow-store";
 import { nodeTypes } from "./nodes";
 import { NodePalette } from "./node-palette";
+import { useTheme } from "next-themes";
 
 function WorkflowCanvasInner() {
   const {
@@ -24,6 +25,8 @@ function WorkflowCanvasInner() {
     onConnect,
     addNode,
   } = useWorkflowStore();
+
+  const { resolvedTheme } = useTheme();
 
   const { screenToFlowPosition } = useReactFlow();
 
@@ -65,6 +68,7 @@ function WorkflowCanvasInner() {
           fitViewOptions={{ padding: 0.4 }}
           deleteKeyCode={["Backspace", "Delete"]}
           className="bg-slate-50 dark:bg-slate-950"
+          colorMode={resolvedTheme === "dark" ? "dark" : "light"}
         >
           <Controls />
           <MiniMap />

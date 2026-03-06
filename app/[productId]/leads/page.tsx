@@ -24,8 +24,14 @@ export default function LeadsPage() {
   }, [productId]);
 
   useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
+    fetch(`/api/leads?productId=${productId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setLeads(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [productId]);
 
   return (
     <div>
