@@ -16,31 +16,44 @@ function calculateHealthScore(
   bounceRate: number,
   completionRate: number,
   unsubRate: number,
-  dailySends: number[]
+  dailySends: number[],
+  emailsSent: number
 ): CampaignHealthScore {
+  const hasData = emailsSent > 0;
+
   // Reply rate: 0-35 points (>20% = full marks)
   const replyScore = Math.min(35, Math.round((replyRate / 20) * 35));
   const replyDetail = `${replyRate.toFixed(1)}% reply rate`;
 
   // Bounce rate: 0-25 points (lower is better, <2% = full marks)
-  const bounceScore = bounceRate <= 0.02
-    ? 25
-    : bounceRate >= 0.1
-      ? 0
-      : Math.round(25 * (1 - (bounceRate - 0.02) / 0.08));
-  const bounceDetail = `${(bounceRate * 100).toFixed(1)}% bounce rate`;
+  // Score 0 when no emails have been sent yet (no real data)
+  const bounceScore = !hasData
+    ? 0
+    : bounceRate <= 0.02
+      ? 25
+      : bounceRate >= 0.1
+        ? 0
+        : Math.round(25 * (1 - (bounceRate - 0.02) / 0.08));
+  const bounceDetail = hasData
+    ? `${(bounceRate * 100).toFixed(1)}% bounce rate`
+    : "No data yet";
 
   // Completion rate: 0-20 points
   const completionScore = Math.min(20, Math.round(completionRate * 20));
   const completionDetail = `${(completionRate * 100).toFixed(0)}% completed`;
 
   // Unsub rate: 0-10 points (lower = better, <0.5% = full marks)
-  const unsubScore = unsubRate <= 0.005
-    ? 10
-    : unsubRate >= 0.05
-      ? 0
-      : Math.round(10 * (1 - (unsubRate - 0.005) / 0.045));
-  const unsubDetail = `${(unsubRate * 100).toFixed(2)}% unsub rate`;
+  // Score 0 when no emails have been sent yet (no real data)
+  const unsubScore = !hasData
+    ? 0
+    : unsubRate <= 0.005
+      ? 10
+      : unsubRate >= 0.05
+        ? 0
+        : Math.round(10 * (1 - (unsubRate - 0.005) / 0.045));
+  const unsubDetail = hasData
+    ? `${(unsubRate * 100).toFixed(2)}% unsub rate`
+    : "No data yet";
 
   // Velocity/consistency: 0-10 points (are you sending regularly?)
   const activeDays = dailySends.filter((d) => d > 0).length;
@@ -291,7 +304,8 @@ export async function GET(
     bounceRate,
     completionRate,
     unsubRate,
-    dailySends
+    dailySends,
+    emailsSent
   );
 
   const result: EnrichedAnalytics = {
