@@ -29,6 +29,7 @@ export interface Lead {
   industry: string | null;
   tags: string[];
   enriched_data: EnrichedLeadData | null;
+  custom_fields: Record<string, unknown> | null;
   created_at: string;
 }
 

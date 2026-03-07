@@ -67,7 +67,9 @@ export function UploadDialog({ productId, onUploaded }: UploadDialogProps) {
         <DialogHeader>
           <DialogTitle>Upload Lead List</DialogTitle>
           <DialogDescription>
-            Upload a CSV file with columns: name, email, company, industry, tags
+            Upload a CSV or JSON file. Required columns: name, email. Any extra
+            columns (e.g. phone, linkedin_url) will appear as additional table
+            columns automatically.
           </DialogDescription>
         </DialogHeader>
 
@@ -82,17 +84,17 @@ export function UploadDialog({ productId, onUploaded }: UploadDialogProps) {
             e.preventDefault();
             e.stopPropagation();
             const file = e.dataTransfer.files[0];
-            if (file?.name.endsWith(".csv")) {
+            if (file?.name.endsWith(".csv") || file?.name.endsWith(".json")) {
               setSelectedFile(file);
             } else {
-              toast.error("Please upload a .csv file");
+              toast.error("Please upload a .csv or .json file");
             }
           }}
         >
           <input
             ref={inputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.json"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];

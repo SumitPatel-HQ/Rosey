@@ -53,6 +53,21 @@ export function LeadsTable({
     () => new Set(leads.filter((l) => l.enriched_data).map((l) => l.id))
   );
 
+  // Collect ordered column keys from custom_fields across all leads,
+  // preserving first-seen order so the table mirrors the original CSV header order.
+  const dynamicColumns = Array.from(
+    leads.reduce((acc, lead) => {
+      if (lead.custom_fields && Object.keys(lead.custom_fields).length > 0) {
+        Object.keys(lead.custom_fields).forEach((k) => acc.add(k));
+      }
+      return acc;
+    }, new Set<string>())
+  );
+
+  // Drive display from custom_fields when available (new uploads).
+  // Fall back to static fields for legacy leads that pre-date the custom_fields column.
+  const hasDynamicCols = dynamicColumns.length > 0;
+
   async function handleEnrich(lead: Lead) {
     setEnrichingId(lead.id);
     try {
@@ -93,22 +108,34 @@ export function LeadsTable({
     }
   }
 
-  const colCount = (selectable ? 1 : 0) + 8;
+  const colCount = (selectable ? 1 : 0) +
+    (hasDynamicCols ? dynamicColumns.length : 6) + 3; // +3 = Enriched, Created, Actions
 
   return (
     <>
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               {selectable && <TableHead className="w-10" />}
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Industry</TableHead>
-              <TableHead>Tags</TableHead>
+              {hasDynamicCols ? (
+                dynamicColumns.map((col) => (
+                  <TableHead key={col} className="whitespace-nowrap capitalize">
+                    {col.replace(/_/g, " ")}
+                  </TableHead>
+                ))
+              ) : (
+                <>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Industry</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead>Created</TableHead>
+                </>
+              )}
               <TableHead>Enriched</TableHead>
-              <TableHead>Created</TableHead>
+              {hasDynamicCols && <TableHead>Created</TableHead>}
               <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
@@ -119,7 +146,7 @@ export function LeadsTable({
                   colSpan={colCount}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No leads yet. Upload a CSV to get started.
+                  No leads yet. Upload a CSV or JSON file to get started.
                 </TableCell>
               </TableRow>
             ) : (
@@ -135,25 +162,35 @@ export function LeadsTable({
                       />
                     </TableCell>
                   )}
-                  <TableCell className="font-medium">{lead.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {lead.email}
-                  </TableCell>
-                  <TableCell>{lead.company || "—"}</TableCell>
-                  <TableCell>{lead.industry || "—"}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {lead.tags?.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
+                  {hasDynamicCols ? (
+                    dynamicColumns.map((col) => {
+                      const val = lead.custom_fields?.[col];
+                      return (
+                        <TableCell key={col} className="whitespace-nowrap text-muted-foreground">
+                          {val != null && val !== "" ? String(val) : "—"}
+                        </TableCell>
+                      );
+                    })
+                  ) : (
+                    <>
+                      <TableCell className="font-medium">{lead.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{lead.email}</TableCell>
+                      <TableCell>{lead.company || "—"}</TableCell>
+                      <TableCell>{lead.industry || "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {lead.tags?.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {new Date(lead.created_at).toLocaleDateString()}
+                      </TableCell>
+                    </>
+                  )}
                   <TableCell>
                     {enrichedIds.has(lead.id) ? (
                       <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-medium">
@@ -163,17 +200,15 @@ export function LeadsTable({
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {new Date(lead.created_at).toLocaleDateString()}
-                  </TableCell>
+                  {hasDynamicCols && (
+                    <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                      {new Date(lead.created_at).toLocaleDateString()}
+                    </TableCell>
+                  )}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                        >
+                        <Button variant="ghost" size="icon" className="h-7 w-7">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>

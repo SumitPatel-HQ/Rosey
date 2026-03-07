@@ -17,21 +17,15 @@ export default function LeadsPage() {
     fetch(`/api/leads?productId=${productId}`)
       .then((r) => r.json())
       .then((data) => {
-        setLeads(data);
+        setLeads(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [productId]);
 
   useEffect(() => {
-    fetch(`/api/leads?productId=${productId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setLeads(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [productId]);
+    fetchLeads();
+  }, [fetchLeads]);
 
   return (
     <div>
