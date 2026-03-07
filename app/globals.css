@@ -129,6 +129,17 @@
   }
 }
 
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Suppress ReactFlow's default selected-node outline; we use our own ring */
 .react-flow__node.selected > * {
   box-shadow: none !important;

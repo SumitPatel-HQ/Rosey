@@ -40,7 +40,7 @@ export default function WorkflowVisual() {
             ref={containerRef}
             style={{
                width: "100%",
-               maxWidth: "480px",
+               maxWidth: "760px",
                boxShadow: "0 24px 54px rgba(0, 0, 0, 0.40)",
                borderRadius: "24px",
                overflow: "hidden",
@@ -48,10 +48,10 @@ export default function WorkflowVisual() {
             }}
          >
             <Image
-               src="/workflow.svg"
+               src="/workflow.png"
                alt="Rosey Workflow"
-               width={1748}
-               height={2048}
+               width={1178}
+               height={660}
                style={{
                   width: "100%",
                   height: "auto",

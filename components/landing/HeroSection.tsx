@@ -93,9 +93,9 @@ export default function HeroSection() {
                maxWidth: "1400px",
                margin: "0 auto",
                display: "grid",
-               gridTemplateColumns: "1.2fr 0.8fr",
+               gridTemplateColumns: "1.1fr 0.9fr",
                alignItems: "center",
-               gap: "6.5rem",
+               gap: "4.5rem",
                position: "relative",
                zIndex: 1,
             }}

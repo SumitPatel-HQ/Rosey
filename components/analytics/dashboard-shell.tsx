@@ -52,7 +52,7 @@ export function DashboardShell({ campaignId, campaignName }: DashboardShellProps
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden" data-lenis-prevent>
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div>
@@ -96,7 +96,10 @@ export function DashboardShell({ campaignId, campaignName }: DashboardShellProps
       {/* Body: sidebar + main content */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Command Center sidebar */}
-        <div className="w-64 border-r bg-muted/30 overflow-y-auto flex-shrink-0">
+        <div
+          className="w-64 border-r bg-muted/30 overflow-hidden flex-shrink-0"
+          data-lenis-prevent
+        >
           <CommandCenter
             analytics={analytics}
             deliverability={deliverability}
@@ -105,7 +108,10 @@ export function DashboardShell({ campaignId, campaignName }: DashboardShellProps
         </div>
 
         {/* Main panel */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-none"
+          data-lenis-prevent
+        >
           {activeTab === "overview" && analytics && (
             <OverviewTab analytics={analytics} />
           )}

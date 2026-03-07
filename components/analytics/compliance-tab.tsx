@@ -233,23 +233,43 @@ function RateBar({
   threshold: number;
 }) {
   const pct = Math.min((value / max) * 100, 100);
+  const thresholdPct = (threshold / max) * 100;
   const isOver = value > threshold;
 
   return (
     <div className="space-y-1">
       <div className="h-3 bg-muted rounded-full overflow-hidden relative">
         <div
-          className={`h-full rounded-full transition-all duration-500 bg-foreground`}
+          className="absolute inset-y-0 left-0 rounded-l-full"
+          style={{
+            width: `${thresholdPct}%`,
+            background:
+              "linear-gradient(90deg, rgba(16,185,129,0.32) 0%, rgba(16,185,129,0.15) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-y-0 right-0 rounded-r-full"
+          style={{
+            width: `${100 - thresholdPct}%`,
+            background:
+              "linear-gradient(90deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.22) 100%)",
+          }}
+        />
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${isOver ? "bg-red-400" : "bg-emerald-400"}`}
           style={{ width: `${pct}%` }}
         />
         {/* Threshold marker */}
         <div
           className="absolute top-0 bottom-0 w-0.5 bg-foreground/30"
-          style={{ left: `${(threshold / max) * 100}%` }}
+          style={{ left: `${thresholdPct}%` }}
         />
       </div>
-      <div className="flex justify-between text-[10px] text-muted-foreground">
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
         <span>0%</span>
+        <span className="text-[9px] text-muted-foreground/80">
+          Threshold {threshold}%
+        </span>
         <span>{max}%</span>
       </div>
     </div>

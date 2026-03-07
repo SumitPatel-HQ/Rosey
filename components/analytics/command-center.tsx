@@ -66,10 +66,10 @@ function ScoreGauge({
           className="transition-all duration-700 ease-out"
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center gap-1">
         <span className="text-2xl font-bold">{score}</span>
         <span
-          className="text-xs font-semibold"
+          className="text-sm font-semibold"
           style={{ color }}
         >
           {grade}
@@ -171,7 +171,7 @@ export function CommandCenter({
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
-                    width: `${(factor.score / factor.max) * 100}%`,
+                    width: `${getFactorFillPercent(key, factor)}%`,
                     backgroundColor:
                       factor.score / factor.max >= 0.7
                         ? "#34d399"
@@ -254,6 +254,22 @@ export function CommandCenter({
       )}
     </div>
   );
+}
+
+function getFactorFillPercent(
+  key: string,
+  factor: { score: number; max: number; detail: string }
+) {
+  // For percent-based factors, keep bar width aligned with displayed values.
+  if (key !== "velocity") {
+    const pctMatch = factor.detail.match(/(\d+(?:\.\d+)?)%/);
+    if (pctMatch) {
+      return Math.max(0, Math.min(100, Number(pctMatch[1])));
+    }
+  }
+
+  // Velocity detail is "N active send days", so fall back to score normalization.
+  return Math.max(0, Math.min(100, (factor.score / factor.max) * 100));
 }
 
 function QuickStat({

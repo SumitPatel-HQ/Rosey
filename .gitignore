@@ -44,3 +44,5 @@ README.md
 AGENTS.md
 # clerk configuration (can include secrets)
 /.clerk/
+
+*.md

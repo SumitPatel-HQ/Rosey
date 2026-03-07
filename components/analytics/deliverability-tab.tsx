@@ -27,6 +27,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  ReferenceLine,
 } from "recharts";
 
 interface DeliverabilityTabProps {
@@ -34,6 +35,15 @@ interface DeliverabilityTabProps {
   warmup: WarmupDashboard | null;
   analytics?: EnrichedAnalytics | null;
 }
+
+const CHART_TOOLTIP_STYLE = {
+  borderRadius: "10px",
+  fontSize: "12px",
+  border: "1px solid hsl(var(--border))",
+  backgroundColor: "hsl(var(--popover) / 0.96)",
+  color: "hsl(var(--popover-foreground))",
+  boxShadow: "0 12px 32px hsl(var(--background) / 0.45)",
+};
 
 export function DeliverabilityTab({
   deliverability,
@@ -234,19 +244,27 @@ function WarmupProjectionChart({
   projection: WarmupDashboard["projection"];
   currentDay: number;
 }) {
-  const phaseColors: Record<string, string> = {
-    warmup: "#fbbf24",
-    rampup: "#60a5fa",
-    full: "#34d399",
-  };
-
   return (
     <div>
       <p className="text-xs text-muted-foreground mb-2">
         Projected daily send capacity
       </p>
-      <ResponsiveContainer width="100%" height={180}>
+      <ResponsiveContainer width="100%" height={220}>
         <BarChart data={projection}>
+          <defs>
+            <linearGradient id="warmupGradWarm" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.95} />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.65} />
+            </linearGradient>
+            <linearGradient id="warmupGradRamp" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.95} />
+              <stop offset="100%" stopColor="#2563eb" stopOpacity={0.65} />
+            </linearGradient>
+            <linearGradient id="warmupGradFull" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#34d399" stopOpacity={0.95} />
+              <stop offset="100%" stopColor="#059669" stopOpacity={0.65} />
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
           <XAxis
             dataKey="day"
@@ -262,29 +280,54 @@ function WarmupProjectionChart({
             width={35}
           />
           <Tooltip
-            contentStyle={{
-              borderRadius: "8px",
-              fontSize: "12px",
-              border: "1px solid hsl(var(--border))",
-              backgroundColor: "hsl(var(--popover))",
-              color: "hsl(var(--popover-foreground))",
-            }}
+            contentStyle={CHART_TOOLTIP_STYLE}
             formatter={(value, _name, props) => [
               value,
               `Limit (${(props as { payload?: { phase?: string } })?.payload?.phase || ""})`,
             ]}
           />
-          <Bar dataKey="limit" radius={[2, 2, 0, 0]}>
+          <ReferenceLine
+            x={currentDay}
+            stroke="hsl(var(--foreground) / 0.35)"
+            strokeDasharray="3 3"
+            label={{
+              value: "Today",
+              position: "top",
+              fontSize: 10,
+              fill: "hsl(var(--muted-foreground))",
+            }}
+          />
+          <Bar dataKey="limit" radius={[4, 4, 0, 0]} barSize={10}>
             {projection.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={phaseColors[entry.phase] || "#71717a"}
+                fill={
+                  entry.phase === "warmup"
+                    ? "url(#warmupGradWarm)"
+                    : entry.phase === "rampup"
+                      ? "url(#warmupGradRamp)"
+                      : "url(#warmupGradFull)"
+                }
                 opacity={entry.day <= currentDay ? 1 : 0.3}
               />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      <div className="mt-2 flex items-center justify-end gap-3 text-[10px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-amber-400" />
+          Warmup
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-sky-400" />
+          Ramp-up
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          Full
+        </span>
+      </div>
     </div>
   );
 }

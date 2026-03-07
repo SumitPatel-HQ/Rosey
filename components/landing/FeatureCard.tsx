@@ -7,7 +7,16 @@ interface Feature {
    body: string;
    tag: string;
    accent: string;
-   visual: "campaign-brain" | "persona" | "timing" | "ghost" | "handoff";
+   visual:
+      | "campaign-brain"
+      | "persona"
+      | "timing"
+      | "ghost"
+      | "handoff"
+      | "committee"
+      | "objection"
+      | "roi"
+      | "link-engagement";
 }
 
 interface FeatureCardProps {
@@ -46,22 +55,6 @@ function FeatureText({ feature }: { feature: Feature }) {
             }}
          >
             {feature.number}
-         </span>
-
-         <span
-            style={{
-               display: "inline-block",
-               alignSelf: "flex-start",
-               padding: "0.25rem 0.75rem",
-               borderRadius: "50px",
-               border: `1px solid ${feature.accent}`,
-               color: feature.accent,
-               fontSize: "0.7rem",
-               fontWeight: 600,
-               letterSpacing: "0.06em",
-            }}
-         >
-            {feature.tag}
          </span>
 
          <h2
@@ -135,6 +128,10 @@ function FeatureVisual({ feature }: { feature: Feature }) {
             {feature.visual === "timing" && <TimingVisual />}
             {feature.visual === "ghost" && <GhostVisual />}
             {feature.visual === "handoff" && <HandoffVisual />}
+            {feature.visual === "committee" && <CommitteeMapperVisual />}
+            {feature.visual === "objection" && <ObjectionPreloaderVisual />}
+            {feature.visual === "roi" && <ROISimulatorVisual />}
+            {feature.visual === "link-engagement" && <LinkEngagementTrackerVisual />}
          </div>
       </div>
    );
@@ -246,24 +243,11 @@ function PersonaVisual() {
                borderRadius: "8px",
                background: "var(--bg-elevated)",
                display: "flex",
-               justifyContent: "space-between",
                alignItems: "center",
             }}
          >
             <span style={{ fontSize: "0.8rem", color: "var(--text-primary)" }}>
                Priya S. — D-type detected
-            </span>
-            <span
-               style={{
-                  fontSize: "0.65rem",
-                  padding: "0.15rem 0.5rem",
-                  borderRadius: "4px",
-                  background: "var(--accent-primary-glow)",
-                  color: "var(--accent-primary)",
-                  fontWeight: 600,
-               }}
-            >
-               DISC
             </span>
          </div>
       </div>
@@ -525,6 +509,213 @@ function HandoffVisual() {
                   📅 Send Calendly
                </button>
             </div>
+         </div>
+      </div>
+   );
+}
+
+/* ─── Committee Mapper ─── */
+function CommitteeMapperVisual() {
+   const stakeholders = [
+      { role: "Champion", person: "Head of Ops", tone: "var(--accent-primary)" },
+      { role: "Economic Buyer", person: "VP Finance", tone: "var(--accent-secondary)" },
+      { role: "Blocker", person: "IT Security", tone: "var(--text-tertiary)" },
+   ];
+
+   return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+         <div
+            style={{
+               textAlign: "center",
+               fontSize: "0.72rem",
+               color: "var(--text-tertiary)",
+               letterSpacing: "0.06em",
+               textTransform: "uppercase",
+            }}
+         >
+            Existing leads expanded into buying committee
+         </div>
+         <div
+            style={{
+               display: "grid",
+               gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+               gap: "0.75rem",
+            }}
+         >
+            {stakeholders.map((entry) => (
+               <div
+                  key={entry.role}
+                  style={{
+                     borderRadius: "12px",
+                     background: "var(--bg-elevated)",
+                     padding: "0.9rem 0.65rem",
+                     border: "1px solid var(--bg-border)",
+                     textAlign: "center",
+                  }}
+               >
+                  <div style={{ fontSize: "0.65rem", color: "var(--text-tertiary)", marginBottom: "0.35rem" }}>{entry.role}</div>
+                  <div style={{ fontSize: "0.78rem", color: entry.tone, fontWeight: 600, lineHeight: 1.3 }}>{entry.person}</div>
+               </div>
+            ))}
+         </div>
+      </div>
+   );
+}
+
+/* ─── Objection Pre-loader ─── */
+function ObjectionPreloaderVisual() {
+   const objections = [
+      { objection: "No budget", response: "Phase rollout + fast payback model", confidence: "89%" },
+      { objection: "Already using a tool", response: "Migration map with zero data loss", confidence: "84%" },
+      { objection: "Timing not right", response: "Low-lift pilot plan in 7 days", confidence: "81%" },
+   ];
+
+   return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+         {objections.map((item) => (
+            <div
+               key={item.objection}
+               style={{
+                  borderRadius: "12px",
+                  border: "1px solid var(--bg-border)",
+                  background: "var(--bg-elevated)",
+                  padding: "0.8rem 0.9rem",
+               }}
+            >
+               <div style={{ fontSize: "0.72rem", color: "var(--text-tertiary)", marginBottom: "0.35rem" }}>
+                  Predicted objection
+               </div>
+               <div style={{ fontSize: "0.8rem", color: "var(--text-primary)", marginBottom: "0.45rem", fontWeight: 600 }}>
+                  {item.objection}
+               </div>
+               <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", lineHeight: 1.4 }}>
+                  AI reply: {item.response}
+               </div>
+               <div style={{ fontSize: "0.68rem", color: "var(--accent-secondary)", marginTop: "0.45rem" }}>
+                  Confidence: {item.confidence}
+               </div>
+            </div>
+         ))}
+      </div>
+   );
+}
+
+/* ─── ROI Simulator ─── */
+function ROISimulatorVisual() {
+   const metrics = [
+      { label: "Projected Opens", value: "1,240", tone: "var(--accent-primary)" },
+      { label: "Expected Replies", value: "188", tone: "var(--accent-secondary)" },
+      { label: "Likely Meetings", value: "32", tone: "var(--accent-primary)" },
+      { label: "Forecast Pipeline", value: "$142k", tone: "var(--accent-secondary)" },
+   ];
+
+   return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+         <div
+            style={{
+               height: "120px",
+               borderRadius: "14px",
+               border: "1px solid var(--bg-border)",
+               background: "linear-gradient(180deg, var(--accent-primary-glow) 0%, transparent 100%)",
+               display: "flex",
+               alignItems: "flex-end",
+               padding: "0.75rem",
+               gap: "0.4rem",
+            }}
+         >
+            {[24, 38, 44, 58, 67, 78, 86].map((v, idx) => (
+               <div key={idx} style={{ flex: 1, height: `${v}%`, borderRadius: "4px 4px 2px 2px", background: "var(--accent-primary)" }} />
+            ))}
+         </div>
+         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.55rem" }}>
+            {metrics.map((metric) => (
+               <div key={metric.label} style={{ borderRadius: "10px", background: "var(--bg-elevated)", padding: "0.7rem 0.75rem" }}>
+                  <div style={{ fontSize: "0.65rem", color: "var(--text-tertiary)", marginBottom: "0.2rem" }}>{metric.label}</div>
+                  <div style={{ fontSize: "0.95rem", color: metric.tone, fontWeight: 700 }}>{metric.value}</div>
+               </div>
+            ))}
+         </div>
+      </div>
+   );
+}
+
+/* ─── Link Engagement Tracker ─── */
+function LinkEngagementTrackerVisual() {
+   const links = [
+      { label: "Pricing deck", clicks: 38, ctr: "31%", tone: "var(--accent-primary)" },
+      { label: "Case study", clicks: 24, ctr: "22%", tone: "var(--accent-secondary)" },
+      { label: "Demo scheduler", clicks: 17, ctr: "15%", tone: "var(--accent-primary)" },
+   ];
+
+   return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+         <div
+            style={{
+               borderRadius: "12px",
+               border: "1px solid var(--bg-border)",
+               background: "linear-gradient(180deg, var(--accent-secondary-glow) 0%, transparent 100%)",
+               padding: "0.9rem 1rem",
+            }}
+         >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+               <span style={{ fontSize: "0.72rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Live activity
+               </span>
+               <span
+                  style={{
+                     fontSize: "0.68rem",
+                     color: "var(--accent-secondary)",
+                     background: "var(--bg-elevated)",
+                     border: "1px solid var(--bg-border)",
+                     borderRadius: "999px",
+                     padding: "0.16rem 0.5rem",
+                  }}
+               >
+                  Updated now
+               </span>
+            </div>
+            <div style={{ fontSize: "1.45rem", color: "var(--text-primary)", fontFamily: "var(--font-heading)", lineHeight: 1 }}>
+               79 Clicks
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
+               12 high-intent leads flagged this hour
+            </div>
+         </div>
+
+         <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
+            {links.map((item) => (
+               <div
+                  key={item.label}
+                  style={{
+                     borderRadius: "10px",
+                     background: "var(--bg-elevated)",
+                     border: "1px solid var(--bg-border)",
+                     padding: "0.65rem 0.75rem",
+                  }}
+               >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.45rem" }}>
+                     <span style={{ fontSize: "0.78rem", color: "var(--text-primary)" }}>{item.label}</span>
+                     <span style={{ fontSize: "0.72rem", color: item.tone, fontWeight: 600 }}>{item.ctr} CTR</span>
+                  </div>
+                  <div
+                     style={{
+                        height: "6px",
+                        borderRadius: "999px",
+                        background: "var(--bg-card)",
+                        overflow: "hidden",
+                     }}
+                  >
+                     <div
+                        style={{
+                           width: `${Math.min(item.clicks, 40) * 2.3}%`,
+                           height: "100%",
+                           background: item.tone,
+                           borderRadius: "999px",
+                        }}
+                     />
+                  </div>
+               </div>
+            ))}
          </div>
       </div>
    );
