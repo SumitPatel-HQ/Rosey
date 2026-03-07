@@ -48,6 +48,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       send_email: { prompt: "", mode: "personalized" },
       wait: { duration: 1, unit: "days" },
       condition: { check: "replied" },
+      auto_reply: { tone_prompt: "", use_product_context: true, use_campaign_context: true },
       end: {},
     };
 
