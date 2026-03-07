@@ -1,10 +1,27 @@
 import OpenAI from "openai";
-import type { Lead, EnrichedLeadData } from "@/types";
+import type { Lead, EnrichedLeadData, KnowledgeBaseItem, ThreadMessage } from "@/types";
 
 const openai = new OpenAI({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
   baseURL: process.env.AZURE_OPENAI_BASE_URL,
 });
+
+/**
+ * Converts an array of KnowledgeBaseItem into a human-readable block that can
+ * be embedded verbatim inside an LLM system prompt.
+ */
+function serializeKbItems(items: KnowledgeBaseItem[]): string {
+  const lines: string[] = [];
+  for (const item of items) {
+    if (item.type === "faq" && item.question && item.answer) {
+      lines.push(`Q: ${item.question}\nA: ${item.answer}`);
+    } else if (item.type === "text" && item.content) {
+      const header = item.label ? `[${item.label}]` : "[Context]";
+      lines.push(`${header}\n${item.content}`);
+    }
+  }
+  return lines.join("\n\n");
+}
 
 /**
  * Generate an email subject and plain-text body from a single natural-language prompt.
@@ -14,14 +31,16 @@ const openai = new OpenAI({
  *                  When null the AI uses {{name}}, {{company}}, {{industry}} as literal
  *                  placeholders so one template can be substituted for every lead.
  * @param productDescription - Optional product context injected into the system prompt.
- * @param options.senderEmail - The From address; injected so the AI never writes [Your Name].
- * @param options.isFollowUp  - When true, instructs the AI this is a follow-up, not a cold intro.
+ * @param options.senderEmail  - The From address; injected so the AI never writes [Your Name].
+ * @param options.isFollowUp   - When true, instructs the AI this is a follow-up, not a cold intro.
+ * @param options.knowledgeBase - Combined product + campaign KB items; embedded into the system
+ *                                prompt so the AI can ground claims in authoritative context.
  */
 export async function generateMessage(
   prompt: string,
   lead: Lead | null,
   productDescription?: string,
-  options?: { senderEmail?: string; isFollowUp?: boolean; enrichedData?: EnrichedLeadData | null }
+  options?: { senderEmail?: string; isFollowUp?: boolean; enrichedData?: EnrichedLeadData | null; knowledgeBase?: KnowledgeBaseItem[] }
 ): Promise<{ subject: string; body: string }> {
   const effectivePrompt = lead
     ? prompt
@@ -40,6 +59,12 @@ export async function generateMessage(
   const senderEmail = options?.senderEmail;
   const isFollowUp = options?.isFollowUp ?? false;
   const enrichedData = options?.enrichedData;
+  const knowledgeBase = options?.knowledgeBase;
+
+  const kbSerialized = knowledgeBase?.length ? serializeKbItems(knowledgeBase) : "";
+  const knowledgeBaseInstruction = kbSerialized
+    ? `\n\nKNOWLEDGE BASE (authoritative facts about this product and campaign — weave in relevant details naturally when they strengthen the email; never recite them as a list):\n${kbSerialized}`
+    : "";
 
   const enrichmentInstruction = enrichedData && enrichedData.personalization_hooks.length > 0
     ? `\n\nEnriched lead intelligence (scraped from the web — use these to make the email feel personal and deeply researched):\n` +
@@ -76,6 +101,7 @@ export async function generateMessage(
           "Write the way a real person writes an email: short paragraphs separated by blank lines, natural conversational tone, no formal sign-off boilerplate. " +
           "Keep it concise (3-5 sentences max unless the prompt specifies otherwise). " +
           "End with a simple, direct call-to-action on its own line." +
+          knowledgeBaseInstruction +
           enrichmentInstruction,
       },
       {
@@ -95,5 +121,97 @@ export async function generateMessage(
   return {
     subject: parsed.subject,
     body: parsed.body,
+  };
+}
+
+export interface AutoReplyResult {
+  can_answer: boolean;
+  subject: string | null;
+  body: string | null;
+  /** Short reasoning explaining the decision (for logs/debugging). */
+  reasoning: string;
+}
+
+/**
+ * Decides whether the AI can fully answer the lead's latest reply using only the
+ * provided knowledge-base context. If it can, it also returns the reply body.
+ *
+ * @param threadMessages   - Full thread (outbound + inbound), oldest first.
+ * @param contextItems     - Combined product + campaign knowledge-base items.
+ * @param campaignDescription - Optional text describing the campaign goal.
+ * @param productDescription  - Optional text describing the product.
+ * @param toneInstructions    - Node-level tone/style prompt from the workflow author.
+ * @param lead             - Lead data for personalisation substitution.
+ */
+export async function generateAutoReply(
+  threadMessages: ThreadMessage[],
+  contextItems: KnowledgeBaseItem[],
+  campaignDescription: string | null | undefined,
+  productDescription: string | null | undefined,
+  toneInstructions: string,
+  lead: Lead
+): Promise<AutoReplyResult> {
+  // ── Format knowledge base ────────────────────────────────────────────────
+  const kbBlock = contextItems.length
+    ? serializeKbItems(contextItems)
+    : "(no knowledge base provided)";
+
+  // ── Format thread conversation ───────────────────────────────────────────
+  const threadBlock = threadMessages
+    .map((m) => {
+      const role = m.isOutbound ? "US" : "LEAD";
+      return `[${role}] ${m.date}\n${m.body.slice(0, 800)}`;
+    })
+    .join("\n\n---\n\n");
+
+  // ── Build system prompt ──────────────────────────────────────────────────
+  const systemPrompt = [
+    "You are an AI assistant that handles B2B email replies on behalf of a sales team.",
+    productDescription ? `Product: ${productDescription}` : null,
+    campaignDescription ? `Campaign goal: ${campaignDescription}` : null,
+    "Your task: decide if you can FULLY answer the lead's latest message using ONLY the knowledge base below.",
+    "Rules:",
+    "- Set can_answer=true ONLY if every part of the question is clearly answered in the knowledge base.",
+    "- Never guess, invent, or assume details not found in the knowledge base.",
+    "- If the question is only partially answerable, set can_answer=false.",
+    "- If can_answer=true, write a professional reply email body (HTML).",
+    toneInstructions ? `Tone instructions: ${toneInstructions}` : null,
+    `Recipient name: ${lead.name} (use this to personalise the greeting).`,
+    'Respond with JSON: {"can_answer": true|false, "subject": "<subject or null>", "body": "<html reply or null>", "reasoning": "<1-2 sentence explanation>"}',
+    "If can_answer=false, set subject and body to null.",
+    "",
+    "KNOWLEDGE BASE:",
+    kbBlock,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-5.3-chat",
+    messages: [
+      { role: "system", content: systemPrompt },
+      {
+        role: "user",
+        content: `EMAIL THREAD (latest last):\n\n${threadBlock}\n\nShould I auto-reply?`,
+      },
+    ],
+    response_format: { type: "json_object" },
+  });
+
+  const raw = completion.choices[0]?.message?.content;
+  if (!raw) throw new Error("No response from OpenAI for auto-reply");
+
+  const parsed = JSON.parse(raw) as {
+    can_answer: boolean;
+    subject?: string | null;
+    body?: string | null;
+    reasoning?: string;
+  };
+
+  return {
+    can_answer: Boolean(parsed.can_answer),
+    subject: parsed.subject ?? null,
+    body: parsed.body ?? null,
+    reasoning: parsed.reasoning ?? "",
   };
 }
