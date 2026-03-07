@@ -215,3 +215,51 @@ export async function generateAutoReply(
     reasoning: parsed.reasoning ?? "",
   };
 }
+
+/**
+ * Generate a plain-text WhatsApp message body from a natural-language prompt.
+ * No HTML — WhatsApp renders only plain text + emoji.
+ */
+export async function generateWhatsAppMessage(
+  prompt: string,
+  lead: Lead | null,
+  productDescription?: string
+): Promise<{ body: string }> {
+  const effectivePrompt = lead
+    ? prompt
+        .replace(/\{\{name\}\}/g, lead.name)
+        .replace(/\{\{email\}\}/g, lead.email)
+        .replace(/\{\{company\}\}/g, lead.company || "your company")
+        .replace(/\{\{industry\}\}/g, lead.industry || "your industry")
+    : prompt;
+
+  const personalizationInstruction = lead
+    ? `Recipient: ${lead.name} at ${lead.company || "unknown company"}. Personalise for them.`
+    : "Write as a reusable template. Use {{name}}, {{company}}, {{industry}} as literal placeholders.";
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-5.3-chat",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are an expert B2B outreach copywriter writing a WhatsApp message. " +
+          (productDescription ? `Product: ${productDescription}. ` : "") +
+          `${personalizationInstruction} ` +
+          "Keep it concise (ideally under 300 characters, never more than 600). " +
+          "Plain text only — no HTML, no markdown, no bullet symbols. Conversational tone. " +
+          'Respond with JSON: {"body": "..."}',
+      },
+      { role: "user", content: effectivePrompt },
+    ],
+    response_format: { type: "json_object" },
+  });
+
+  const raw = completion.choices[0]?.message?.content ?? "{}";
+  try {
+    const parsed = JSON.parse(raw) as { body?: string };
+    return { body: parsed.body?.trim() || "Hi {{name}}, following up — would love to connect." };
+  } catch {
+    return { body: "Hi, just following up — would love to connect." };
+  }
+}
