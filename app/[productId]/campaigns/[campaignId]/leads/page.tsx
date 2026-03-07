@@ -58,6 +58,14 @@ export default function CampaignLeadsPage() {
       .catch(() => setLoading(false));
   }, [campaignId, productId]);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      fetchCampaignLeads();
+    }, 15000);
+
+    return () => clearInterval(timer);
+  }, [fetchCampaignLeads]);
+
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
