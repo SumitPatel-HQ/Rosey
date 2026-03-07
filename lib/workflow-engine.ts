@@ -3,6 +3,7 @@ import type { WorkflowEdge, WorkflowJSON, WorkflowNode } from "@/types";
 export type NormalizedWorkflowNodeType =
   | "start"
   | "send_email"
+  | "send_whatsapp"
   | "wait"
   | "condition"
   | "auto_reply"
@@ -59,6 +60,8 @@ export function normalizeNodeType(type: string): NormalizedWorkflowNodeType {
     case "sendEmail":
     case "sendFollowup":
       return "send_email";
+    case "send_whatsapp":
+      return "send_whatsapp";
     case "wait":
       return "wait";
     case "condition":
