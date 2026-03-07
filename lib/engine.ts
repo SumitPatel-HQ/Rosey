@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import type { Campaign, CampaignLead, Lead, WorkflowNode } from "@/types";
+import type { Campaign, CampaignLead, Lead, WorkflowNode, KnowledgeBaseItem } from "@/types";
 import {
   parseWorkflow,
   runWorkflow,
@@ -192,6 +192,8 @@ interface CampaignExecutionContext {
   lead: Lead;
   productName: string;
   productDescription?: string;
+  /** Combined product KB + campaign automation_context items — passed to generateMessage */
+  knowledgeBaseItems: KnowledgeBaseItem[];
   threadId?: string;
   lastMessageId?: string;
   threadSubject?: string;
@@ -258,6 +260,7 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
           senderEmail: process.env.GMAIL_USER_EMAIL,
           isFollowUp: !!threadId,
           enrichedData: context.lead.enriched_data ?? null,
+          knowledgeBase: context.knowledgeBaseItems,
         });
         node.data.cached_subject = message.subject;
         node.data.cached_body = message.body;
@@ -284,6 +287,7 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
         senderEmail: process.env.GMAIL_USER_EMAIL,
         isFollowUp: !!threadId,
         enrichedData: context.lead.enriched_data ?? null,
+        knowledgeBase: context.knowledgeBaseItems,
       });
       subject = threadSubject || message.subject;
       htmlBody = message.body;
@@ -417,6 +421,126 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
     await logAction(context.supabase, context.campaignLead.id, "end", "success");
     return { stop: true };
   },
+
+  auto_reply: async (node, context) => {
+    // ── Suppression check ────────────────────────────────────────────────
+    const isSuppressed = await checkSuppression(context.supabase, context.lead.email);
+    if (isSuppressed) {
+      await logAction(context.supabase, context.campaignLead.id, "auto_reply", "skipped", {
+        reason: "suppressed",
+        email: context.lead.email,
+      });
+      return { branch: "unanswered" };
+    }
+
+    // ── Guard: need a thread to reply into ──────────────────────────────
+    if (!context.threadId) {
+      await logAction(context.supabase, context.campaignLead.id, "auto_reply", "skipped", {
+        reason: "no_thread_id",
+      });
+      return { branch: "unanswered" };
+    }
+
+    const toneInstructions = typeof node.data.tone_prompt === "string" ? node.data.tone_prompt : "";
+    const useProductCtx = node.data.use_product_context !== false;
+    const useCampaignCtx = node.data.use_campaign_context !== false;
+
+    // ── Assemble knowledge base items ────────────────────────────────────
+    const contextItems: import("@/types").KnowledgeBaseItem[] = [];
+
+    if (useProductCtx) {
+      // Fetch the product's knowledge base
+      const { data: productRow } = await context.supabase
+        .from("products")
+        .select("knowledge_base")
+        .eq("id", context.campaign.product_id)
+        .maybeSingle();
+      const kb = productRow?.knowledge_base as import("@/types").AutomationContext | null;
+      if (kb?.items?.length) contextItems.push(...kb.items);
+    }
+
+    if (useCampaignCtx) {
+      const campaignCtx = context.campaign.automation_context;
+      if (campaignCtx?.items?.length) contextItems.push(...campaignCtx.items);
+    }
+
+    // ── Fetch full thread ────────────────────────────────────────────────
+    const { getThreadMessages } = await import("@/lib/gmail");
+    const threadMessages = await getThreadMessages(context.threadId);
+
+    // ── Ask LLM ─────────────────────────────────────────────────────────
+    const { generateAutoReply } = await import("@/lib/openai");
+    const result = await generateAutoReply(
+      threadMessages,
+      contextItems,
+      undefined, // campaign description - not a dedicated field yet
+      context.productDescription ?? null,
+      toneInstructions,
+      context.lead
+    );
+
+    if (!result.can_answer || !result.body) {
+      await logAction(context.supabase, context.campaignLead.id, "auto_reply", "skipped", {
+        reason: "cannot_answer",
+        reasoning: result.reasoning,
+        context_items_count: contextItems.length,
+      });
+      return { branch: "unanswered" };
+    }
+
+    // ── Send the reply ───────────────────────────────────────────────────
+    const { sendEmail, applyLabelToMessage, applyLabelToThread } = await import("@/lib/gmail");
+    const { buildComplianceFooter, buildUnsubscribeUrl } = await import("@/lib/compliance");
+
+    const unsubscribeUrl = buildUnsubscribeUrl(context.campaignLead.id);
+    const htmlBody = result.body + buildComplianceFooter(unsubscribeUrl);
+    const subject = result.subject || `Re: ${context.threadSubject || "your message"}`;
+
+    const sent = await sendEmail({
+      to: context.lead.email,
+      subject,
+      htmlBody,
+      threadId: context.threadId,
+      replyToMessageId: context.lastMessageId,
+      unsubscribeUrl,
+    });
+
+    context.threadId = sent.threadId;
+    context.lastMessageId = sent.rfcMessageId || context.lastMessageId;
+    context.threadSubject = context.threadSubject || subject;
+
+    await persistThreadState(context.supabase, context.campaignLead.id, {
+      threadId: sent.threadId,
+      lastMessageId: context.lastMessageId,
+      threadSubject: context.threadSubject,
+    });
+
+    if (context.labelId) {
+      try {
+        await applyLabelToThread(sent.threadId, context.labelId);
+      } catch {
+        await applyLabelToMessage(sent.messageId, context.labelId);
+      }
+    }
+
+    await context.supabase
+      .from("campaign_leads")
+      .update({ followup_count: (context.campaignLead.followup_count || 0) + 1 })
+      .eq("id", context.campaignLead.id);
+    context.campaignLead.followup_count = (context.campaignLead.followup_count || 0) + 1;
+
+    await recordDeliverabilityEvent(context.supabase, context.campaignLead.id, "sent");
+    context.emailCounter.count++;
+
+    await logAction(context.supabase, context.campaignLead.id, "auto_reply", "success", {
+      reasoning: result.reasoning,
+      context_items_count: contextItems.length,
+      thread_id: sent.threadId,
+      subject,
+    });
+
+    return { branch: "answered" };
+  },
 };
 
 async function processCampaignLead(
@@ -427,7 +551,8 @@ async function processCampaignLead(
   productName: string,
   labelId: string | null,
   productDescription?: string,
-  emailCounter?: { count: number }
+  emailCounter?: { count: number },
+  knowledgeBaseItems?: KnowledgeBaseItem[]
 ) {
   if (!campaignLead.lead) {
     throw new Error(`Lead ${campaignLead.lead_id} not loaded`);
@@ -444,6 +569,7 @@ async function processCampaignLead(
       lead: campaignLead.lead,
       productName,
       productDescription,
+      knowledgeBaseItems: knowledgeBaseItems ?? [],
       labelId,
       threadId: campaignLead.thread_id || undefined,
       lastMessageId: campaignLead.last_message_id || undefined,
@@ -593,16 +719,16 @@ export async function processActiveCampaigns(): Promise<{
   const productIds = [...new Set((activeCampaigns as Campaign[]).map((c) => c.product_id))];
   const { data: products } = await supabase
     .from("products")
-    .select("id, name, description")
+    .select("id, name, description, knowledge_base")
     .in("id", productIds);
   const productMap = new Map<
     string,
-    { name: string; description: string | null }
+    { name: string; description: string | null; knowledge_base: { items: KnowledgeBaseItem[] } | null }
   >(
     (products || []).map(
-      (product: { id: string; name: string; description: string | null }) => [
+      (product: { id: string; name: string; description: string | null; knowledge_base: { items: KnowledgeBaseItem[] } | null }) => [
         product.id,
-        { name: product.name, description: product.description },
+        { name: product.name, description: product.description, knowledge_base: product.knowledge_base },
       ]
     )
   );
@@ -626,6 +752,9 @@ export async function processActiveCampaigns(): Promise<{
 
     const productName = product.name;
     const productDescription = product.description || undefined;
+    const productKbItems: KnowledgeBaseItem[] = product.knowledge_base?.items ?? [];
+    const campaignKbItems: KnowledgeBaseItem[] = (campaign as Campaign & { automation_context?: { items: KnowledgeBaseItem[] } }).automation_context?.items ?? [];
+    const knowledgeBaseItems: KnowledgeBaseItem[] = [...productKbItems, ...campaignKbItems];
 
     let labelId: string | null = null;
     try {
@@ -700,7 +829,8 @@ export async function processActiveCampaigns(): Promise<{
             productName,
             labelId,
             productDescription,
-            emailCounter
+            emailCounter,
+            knowledgeBaseItems
           );
         } catch (error) {
           console.error(`Error processing campaign_lead ${campaignLead.id}:`, error);
