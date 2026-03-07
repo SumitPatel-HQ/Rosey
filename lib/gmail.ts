@@ -126,10 +126,12 @@ export async function applyLabelToMessage(
 
 export async function hasThreadReceivedReply(
   threadId: string,
-  senderEmail: string
+  senderEmail: string,
+  expectedReplyFrom?: string | null
 ): Promise<boolean> {
   const gmail = getGmailClient();
   const normalizedSender = normalizeEmail(senderEmail);
+  const normalizedExpectedReplyFrom = normalizeEmail(expectedReplyFrom || null);
 
   const res = await gmail.users.threads.get({
     userId: "me",
@@ -146,7 +148,11 @@ export async function hasThreadReceivedReply(
       (h) => h.name?.toLowerCase() === "from"
     );
     const fromEmail = normalizeEmail(fromHeader?.value);
-    return Boolean(fromEmail && normalizedSender && fromEmail !== normalizedSender);
+    if (!fromEmail) return false;
+    if (normalizedExpectedReplyFrom) {
+      return fromEmail === normalizedExpectedReplyFrom;
+    }
+    return Boolean(normalizedSender && fromEmail !== normalizedSender);
   });
 }
 
