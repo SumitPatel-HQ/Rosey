@@ -150,12 +150,12 @@ export async function GET(
   const active = cls.filter((cl) => cl.status === "active").length;
 
   const pipeline: PipelineStage[] = [
-    { stage: "Queued", count: queued, color: "#6b7280" },
-    { stage: "Active", count: active, color: "#3b82f6" },
-    { stage: "Waiting", count: waiting, color: "#f59e0b" },
-    { stage: "Replied", count: replies, color: "#8b5cf6" },
-    { stage: "Completed", count: completed, color: "#22c55e" },
-    { stage: "Failed", count: failed, color: "#ef4444" },
+    { stage: "Queued", count: queued, color: "#71717a" },
+    { stage: "Active", count: active, color: "#60a5fa" },
+    { stage: "Waiting", count: waiting, color: "#fbbf24" },
+    { stage: "Replied", count: replies, color: "#a78bfa" },
+    { stage: "Completed", count: completed, color: "#34d399" },
+    { stage: "Failed", count: failed, color: "#f87171" },
   ];
 
   // ── Daily volume (last 30 days) ───────────────────────────────────────────

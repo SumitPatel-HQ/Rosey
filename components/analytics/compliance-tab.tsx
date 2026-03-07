@@ -32,44 +32,38 @@ export function ComplianceTab({ compliance }: ComplianceTabProps) {
       label: "Total Emails Sent",
       value: compliance.totalEmailsSent,
       icon: Mail,
-      color: "text-blue-600 bg-blue-100",
+      color: "text-foreground bg-muted",
     },
     {
       label: "Suppressed Emails",
       value: compliance.suppressionCount,
       icon: Ban,
-      color: "text-red-600 bg-red-100",
+      color: "text-foreground bg-muted",
     },
     {
       label: "Unsubscribes",
       value: compliance.unsubscribeCount,
       icon: AlertTriangle,
-      color: "text-amber-600 bg-amber-100",
+      color: "text-foreground bg-muted",
     },
     {
       label: "Bounces",
       value: compliance.bounceCount,
       icon: AlertTriangle,
-      color: "text-orange-600 bg-orange-100",
+      color: "text-foreground bg-muted",
     },
   ];
 
   return (
     <div className="p-6 space-y-6">
       {/* Status banner */}
-      <Card
-        className={
-          canSpamCompliant
-            ? "border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-900"
-            : "border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900"
-        }
-      >
+      <Card className="border bg-muted/30">
         <CardContent className="py-4">
           <div className="flex items-center gap-3">
             {canSpamCompliant ? (
-              <CheckCircle className="h-5 w-5 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-foreground" />
             ) : (
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
             )}
             <div>
               <p className="font-semibold text-sm">
@@ -245,9 +239,7 @@ function RateBar({
     <div className="space-y-1">
       <div className="h-3 bg-muted rounded-full overflow-hidden relative">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${
-            isOver ? "bg-red-500" : "bg-green-500"
-          }`}
+          className={`h-full rounded-full transition-all duration-500 bg-foreground`}
           style={{ width: `${pct}%` }}
         />
         {/* Threshold marker */}

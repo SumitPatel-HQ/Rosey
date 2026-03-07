@@ -32,14 +32,14 @@ function ScoreGauge({
   const progress = (score / 100) * circumference;
   const color =
     score >= 85
-      ? "#22c55e"
+      ? "#34d399"
       : score >= 70
-        ? "#3b82f6"
+        ? "#60a5fa"
         : score >= 55
-          ? "#f59e0b"
+          ? "#fbbf24"
           : score >= 40
-            ? "#f97316"
-            : "#ef4444";
+            ? "#fb923c"
+            : "#f87171";
 
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
@@ -102,35 +102,35 @@ export function CommandCenter({
     alerts.push({
       icon: AlertTriangle,
       text: `${analytics.failed} failed lead${analytics.failed > 1 ? "s" : ""}`,
-      color: "text-red-500",
+      color: "text-foreground",
     });
   }
   if (analytics.replyRate > 15) {
     alerts.push({
       icon: TrendingUp,
       text: `${analytics.replyRate}% reply rate — strong!`,
-      color: "text-green-500",
+      color: "text-foreground",
     });
   }
   if (deliverability && deliverability.bounceRate > 0.05) {
     alerts.push({
       icon: AlertTriangle,
       text: `High bounce rate: ${(deliverability.bounceRate * 100).toFixed(1)}%`,
-      color: "text-amber-500",
+      color: "text-muted-foreground",
     });
   }
   if (warmup?.enabled && warmup.schedule) {
     alerts.push({
       icon: Zap,
       text: `Warmup day ${warmup.schedule.day_number} — ${warmup.schedule.phase}`,
-      color: "text-blue-500",
+      color: "text-muted-foreground",
     });
   }
   if (analytics.replies > 0) {
     alerts.push({
       icon: MessageSquare,
       text: `${analytics.replies} replied — check inbox`,
-      color: "text-purple-500",
+      color: "text-muted-foreground",
     });
   }
 
@@ -174,10 +174,10 @@ export function CommandCenter({
                     width: `${(factor.score / factor.max) * 100}%`,
                     backgroundColor:
                       factor.score / factor.max >= 0.7
-                        ? "#22c55e"
+                        ? "#34d399"
                         : factor.score / factor.max >= 0.4
-                          ? "#f59e0b"
-                          : "#ef4444",
+                          ? "#fbbf24"
+                          : "#f87171",
                   }}
                 />
               </div>
@@ -196,42 +196,38 @@ export function CommandCenter({
             icon={Mail}
             label="Emails Sent"
             value={analytics.emailsSent.toString()}
-            color="text-blue-500"
+            color="text-muted-foreground"
           />
           <QuickStat
             icon={MessageSquare}
             label="Replies"
             value={analytics.replies.toString()}
-            color="text-purple-500"
+            color="text-muted-foreground"
           />
           <QuickStat
             icon={TrendingUp}
             label="Reply Rate"
             value={`${analytics.replyRate}%`}
-            color="text-emerald-500"
+            color="text-muted-foreground"
           />
           <QuickStat
             icon={Activity}
             label="Follow-ups"
             value={analytics.totalFollowups.toString()}
-            color="text-amber-500"
+            color="text-muted-foreground"
           />
           <QuickStat
             icon={CheckCircle}
             label="Completed"
             value={`${analytics.completed}/${analytics.totalLeads}`}
-            color="text-green-500"
+            color="text-muted-foreground"
           />
           {deliverability && (
             <QuickStat
               icon={Shield}
               label="Bounce Rate"
               value={`${(deliverability.bounceRate * 100).toFixed(1)}%`}
-              color={
-                deliverability.bounceRate > 0.05
-                  ? "text-red-500"
-                  : "text-green-500"
-              }
+              color="text-muted-foreground"
             />
           )}
         </div>

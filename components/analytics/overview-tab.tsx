@@ -196,8 +196,8 @@ function SendVelocityChart({
             <Area
               type="monotone"
               dataKey="sent"
-              stroke="#3b82f6"
-              fill="#3b82f6"
+              stroke="#60a5fa"
+              fill="#60a5fa"
               fillOpacity={0.15}
               strokeWidth={2}
               name="Sent"
@@ -205,8 +205,8 @@ function SendVelocityChart({
             <Area
               type="monotone"
               dataKey="replies"
-              stroke="#8b5cf6"
-              fill="#8b5cf6"
+              stroke="#a78bfa"
+              fill="#a78bfa"
               fillOpacity={0.15}
               strokeWidth={2}
               name="Replies"
@@ -278,8 +278,8 @@ function FollowupChart({
                 return [value, name === "sent" ? "Sent" : "Replies"];
               }}
             />
-            <Bar dataKey="sent" fill="#3b82f6" radius={[4, 4, 0, 0]} name="sent" />
-            <Bar dataKey="replies" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="replies" />
+            <Bar dataKey="sent" fill="#93c5fd" radius={[4, 4, 0, 0]} name="sent" />
+            <Bar dataKey="replies" fill="#c4b5fd" radius={[4, 4, 0, 0]} name="replies" />
           </BarChart>
         </ResponsiveContainer>
         {/* Reply rate labels below */}
@@ -330,9 +330,9 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
   };
 
   const actionColors: Record<string, string> = {
-    success: "text-green-500",
-    failed: "text-red-500",
-    skipped: "text-amber-500",
+    success: "text-foreground",
+    failed: "text-foreground",
+    skipped: "text-muted-foreground",
   };
 
   return (
@@ -358,14 +358,14 @@ function ActivityFeed({ events }: { events: ActivityEvent[] }) {
                       {event.leadName}
                     </span>
                     <Badge
-                      variant={
+                      variant="outline"
+                      className={`text-[10px] px-1 py-0 border-0 ${
                         event.status === "success"
-                          ? "default"
+                          ? "bg-emerald-500/15 text-emerald-400"
                           : event.status === "failed"
-                            ? "destructive"
-                            : "secondary"
-                      }
-                      className="text-[10px] px-1 py-0"
+                            ? "bg-red-500/15 text-red-400"
+                            : "bg-amber-500/15 text-amber-400"
+                      }`}
                     >
                       {event.status}
                     </Badge>
@@ -396,11 +396,12 @@ function LeadPerformanceTable({
   if (leads.length === 0) return null;
 
   const statusColors: Record<string, string> = {
-    queued: "bg-gray-100 text-gray-700",
-    active: "bg-blue-100 text-blue-700",
-    waiting: "bg-amber-100 text-amber-700",
-    completed: "bg-green-100 text-green-700",
-    failed: "bg-red-100 text-red-700",
+    queued: "bg-zinc-500/15 text-zinc-400",
+    active: "bg-blue-500/15 text-blue-400",
+    waiting: "bg-amber-500/15 text-amber-400",
+    completed: "bg-emerald-500/15 text-emerald-400",
+    failed: "bg-red-500/15 text-red-400",
+    pending_review: "bg-violet-500/15 text-violet-400",
   };
 
   return (
@@ -449,7 +450,7 @@ function LeadPerformanceTable({
                   </td>
                   <td className="py-2 text-center">
                     {lead.replied ? (
-                      <span className="text-green-600">✓</span>
+                      <span className="text-foreground">✓</span>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
@@ -489,13 +490,13 @@ export function OverviewTab({ analytics }: OverviewTabProps) {
       label: "Total Leads",
       value: analytics.totalLeads,
       icon: Users,
-      color: "text-blue-600 bg-blue-100",
+      color: "text-foreground bg-muted",
     },
     {
       label: "Emails Sent",
       value: analytics.emailsSent,
       icon: Mail,
-      color: "text-green-600 bg-green-100",
+      color: "text-foreground bg-muted",
       subtext: analytics.emailsSkipped > 0
         ? `${analytics.emailsSkipped} skipped`
         : undefined,
@@ -504,26 +505,26 @@ export function OverviewTab({ analytics }: OverviewTabProps) {
       label: "Replies",
       value: analytics.replies,
       icon: Reply,
-      color: "text-purple-600 bg-purple-100",
+      color: "text-foreground bg-muted",
     },
     {
       label: "Reply Rate",
       value: `${analytics.replyRate}%`,
       icon: TrendingUp,
-      color: "text-emerald-600 bg-emerald-100",
+      color: "text-foreground bg-muted",
     },
     {
       label: "Completed",
       value: analytics.completed,
       icon: CheckCircle,
-      color: "text-green-600 bg-green-100",
+      color: "text-foreground bg-muted",
       subtext: `${analytics.failed} failed`,
     },
     {
       label: "In Progress",
       value: analytics.inProgress,
       icon: Clock,
-      color: "text-blue-600 bg-blue-100",
+      color: "text-foreground bg-muted",
       subtext: `${analytics.totalFollowups} follow-ups`,
     },
   ];

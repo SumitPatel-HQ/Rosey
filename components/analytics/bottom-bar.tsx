@@ -44,7 +44,7 @@ export function BottomBar({
       <div className="flex items-center gap-1.5">
         <Shield
           className={`h-3.5 w-3.5 ${
-            canSpamOk ? "text-green-500" : "text-amber-500"
+            canSpamOk ? "text-foreground" : "text-muted-foreground"
           }`}
         />
         <span>{canSpamOk ? "CAN-SPAM Compliant" : "Review Compliance"}</span>
@@ -54,7 +54,7 @@ export function BottomBar({
 
       {/* Rate limit / budget */}
       <div className="flex items-center gap-1.5">
-        <Gauge className="h-3.5 w-3.5 text-blue-500" />
+        <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
         <span>
           Daily budget: <strong className="text-foreground">{dailyLimit}</strong> emails
         </span>
@@ -65,9 +65,7 @@ export function BottomBar({
       {/* Warmup */}
       <div className="flex items-center gap-1.5">
         <Radio
-          className={`h-3.5 w-3.5 ${
-            warmup?.enabled ? "text-amber-500" : "text-muted-foreground"
-          }`}
+          className={`h-3.5 w-3.5 text-muted-foreground`}
         />
         <span>
           Warmup: <strong className="text-foreground">{warmupLabel}</strong>
@@ -81,8 +79,8 @@ export function BottomBar({
         <TrendingUp
           className={`h-3.5 w-3.5 ${
             deliverability && deliverability.bounceRate < 0.03
-              ? "text-green-500"
-              : "text-amber-500"
+              ? "text-foreground"
+              : "text-muted-foreground"
           }`}
         />
         <span>

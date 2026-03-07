@@ -53,19 +53,13 @@ export function DeliverabilityTab({
   return (
     <div className="p-6 space-y-6">
       {/* Domain health banner */}
-      <Card
-        className={
-          isHealthy
-            ? "border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-900"
-            : "border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900"
-        }
-      >
+      <Card className="border bg-muted/30">
         <CardContent className="py-4">
           <div className="flex items-center gap-3">
             {isHealthy ? (
-              <CheckCircle className="h-5 w-5 text-green-600" />
+              <CheckCircle className="h-5 w-5 text-foreground" />
             ) : (
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
             )}
             <div>
               <p className="font-semibold text-sm">
@@ -93,25 +87,25 @@ export function DeliverabilityTab({
           label="Sent"
           value={deliverability.sent}
           icon={Activity}
-          color="text-blue-600 bg-blue-100"
+          color="text-foreground bg-muted"
         />
         <MetricCard
           label="Hard Bounces"
           value={deliverability.hardBounces}
           icon={AlertTriangle}
-          color="text-red-600 bg-red-100"
+          color="text-foreground bg-muted"
         />
         <MetricCard
           label="Soft Bounces"
           value={deliverability.softBounces}
           icon={AlertTriangle}
-          color="text-amber-600 bg-amber-100"
+          color="text-foreground bg-muted"
         />
         <MetricCard
           label="Complaints"
           value={deliverability.complaints}
           icon={AlertTriangle}
-          color="text-orange-600 bg-orange-100"
+          color="text-foreground bg-muted"
         />
       </div>
 
@@ -121,7 +115,7 @@ export function DeliverabilityTab({
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Zap className="h-4 w-4 text-amber-500" />
+                <Zap className="h-4 w-4 text-muted-foreground" />
                 Warmup Schedule
               </CardTitle>
               <Badge variant={warmup.enabled ? "default" : "secondary"}>
@@ -142,7 +136,7 @@ export function DeliverabilityTab({
                   </div>
                   <div className="h-3 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-amber-400 via-blue-500 to-green-500 transition-all duration-700"
+                      className="h-full rounded-full bg-foreground transition-all duration-700"
                       style={{
                         width: `${Math.min(
                           (warmup.schedule.day_number / 30) * 100,
@@ -241,9 +235,9 @@ function WarmupProjectionChart({
   currentDay: number;
 }) {
   const phaseColors: Record<string, string> = {
-    warmup: "#f59e0b",
-    rampup: "#3b82f6",
-    full: "#22c55e",
+    warmup: "#fbbf24",
+    rampup: "#60a5fa",
+    full: "#34d399",
   };
 
   return (
@@ -284,7 +278,7 @@ function WarmupProjectionChart({
             {projection.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={phaseColors[entry.phase] || "#6b7280"}
+                fill={phaseColors[entry.phase] || "#71717a"}
                 opacity={entry.day <= currentDay ? 1 : 0.3}
               />
             ))}
@@ -301,10 +295,10 @@ function BounceBreakdownChart({
   deliverability: DeliverabilityDashboard;
 }) {
   const data = [
-    { type: "Delivered", count: Math.max(0, deliverability.sent - deliverability.hardBounces - deliverability.softBounces - deliverability.complaints), color: "#22c55e" },
-    { type: "Hard Bounce", count: deliverability.hardBounces, color: "#ef4444" },
-    { type: "Soft Bounce", count: deliverability.softBounces, color: "#f59e0b" },
-    { type: "Complaints", count: deliverability.complaints, color: "#f97316" },
+    { type: "Delivered", count: Math.max(0, deliverability.sent - deliverability.hardBounces - deliverability.softBounces - deliverability.complaints), color: "#34d399" },
+    { type: "Hard Bounce", count: deliverability.hardBounces, color: "#f87171" },
+    { type: "Soft Bounce", count: deliverability.softBounces, color: "#fbbf24" },
+    { type: "Complaints", count: deliverability.complaints, color: "#fb923c" },
   ].filter((d) => d.count > 0);
 
   if (data.length === 0) {
