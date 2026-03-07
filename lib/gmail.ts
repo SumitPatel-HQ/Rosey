@@ -26,9 +26,11 @@ export async function sendEmail(params: {
   replyToMessageId?: string;
   /** Space-separated list of all RFC Message-IDs in the thread chain (RFC 2822 References header). */
   referencesChain?: string;
+  /** URL for the List-Unsubscribe header (CAN-SPAM / RFC 8058). */
+  unsubscribeUrl?: string;
 }): Promise<{ messageId: string; threadId: string; rfcMessageId: string | null }> {
   const gmail = getGmailClient();
-  const { to, subject, htmlBody, threadId, replyToMessageId, referencesChain } = params;
+  const { to, subject, htmlBody, threadId, replyToMessageId, referencesChain, unsubscribeUrl } = params;
 
   const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString("base64")}?=`;
   // Use the full references chain when available; fall back to just the direct parent.
@@ -43,6 +45,12 @@ export async function sendEmail(params: {
       ? [
           `In-Reply-To: ${replyToMessageId}`,
           `References: ${referencesValue}`,
+        ]
+      : []),
+    ...(unsubscribeUrl
+      ? [
+          `List-Unsubscribe: <${unsubscribeUrl}>`,
+          `List-Unsubscribe-Post: List-Unsubscribe=One-Click`,
         ]
       : []),
     "",

@@ -14,15 +14,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Package } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { productTemplates } from "@/lib/templates";
 
 export default function NewProductPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [creating, setCreating] = useState(false);
+
+  function applyTemplate(templateId: string) {
+    const t = productTemplates.find((t) => t.id === templateId);
+    if (!t) return;
+    setName(t.name);
+    setDescription(t.productDescription);
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +73,28 @@ export default function NewProductPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8 max-w-lg">
+      <main className="container mx-auto px-6 py-8 max-w-2xl">
+        {/* Template picker */}
+        <div className="mb-6">
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">Quick Start — pick a template</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {productTemplates.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => applyTemplate(t.id)}
+                className="group flex items-start gap-3 rounded-lg border p-3 text-left transition-colors hover:border-primary hover:bg-primary/5"
+              >
+                <Package className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{t.label}</p>
+                  <p className="text-xs text-muted-foreground">{t.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Create Product</CardTitle>

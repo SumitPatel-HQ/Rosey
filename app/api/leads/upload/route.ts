@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const lower = (s: string) => s.toLowerCase().trim();
-    leadsToInsert = strRows
+    const mapped = strRows
       .map((row) => {
         const email = row[emailCol]?.trim();
         if (!email || !email.includes("@")) return null;
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
             : [],
           custom_fields: row,
         } satisfies LeadInsert;
-      })
-      .filter((r): r is LeadInsert => r !== null);
+      });
+    leadsToInsert = mapped.filter((r) => r !== null) as LeadInsert[];
   } else {
     // CSV path — accept any column structure
     let rows: Record<string, string>[];
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     const lower = (s: string) => s.toLowerCase().trim();
-    leadsToInsert = rows
+    const csvMapped = rows
       .map((row) => {
         const email = row[emailCol]?.trim();
         if (!email || !email.includes("@")) return null;
@@ -132,8 +132,8 @@ export async function POST(request: NextRequest) {
             .filter(Boolean),
           custom_fields: row,
         } satisfies LeadInsert;
-      })
-      .filter((r): r is LeadInsert => r !== null);
+      });
+    leadsToInsert = csvMapped.filter((r) => r !== null) as LeadInsert[];
   }
 
   if (leadsToInsert.length === 0) {

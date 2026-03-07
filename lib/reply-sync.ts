@@ -36,7 +36,7 @@ export async function syncCampaignReplyStatus(
   const nonMatchedIds: string[] = [];
   const waitingIds: string[] = [];
 
-  for (const candidate of candidates as CandidateLead[]) {
+  for (const candidate of candidates as unknown as CandidateLead[]) {
     if (!candidate.thread_id || !candidate.lead?.email) {
       nonMatchedIds.push(candidate.id);
       continue;

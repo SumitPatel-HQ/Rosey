@@ -39,7 +39,7 @@ export default function CampaignAnalyticsPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [fetchAnalytics]);
+  }, [campaignId]);
 
   if (loading || !analytics) {
     return (

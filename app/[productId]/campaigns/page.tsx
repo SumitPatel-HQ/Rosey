@@ -35,9 +35,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Megaphone, Loader2, MoreVertical, Trash2 } from "lucide-react";
+import { Plus, Megaphone, Loader2, MoreVertical, Trash2, Workflow } from "lucide-react";
 import { toast } from "sonner";
 import type { Campaign } from "@/types";
+import { campaignTemplates, type CampaignTemplate } from "@/lib/templates";
 
 interface CampaignWithCounts extends Campaign {
   campaign_leads: [{ count: number }];
@@ -58,6 +59,7 @@ export default function CampaignsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<CampaignTemplate | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CampaignWithCounts | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -86,7 +88,11 @@ export default function CampaignsPage() {
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: productId, name: newName.trim() }),
+        body: JSON.stringify({
+          product_id: productId,
+          name: newName.trim(),
+          ...(selectedTemplate ? { workflow_json: selectedTemplate.workflow } : {}),
+        }),
       });
 
       if (!res.ok) {
@@ -97,6 +103,7 @@ export default function CampaignsPage() {
       const campaign = await res.json();
       setDialogOpen(false);
       setNewName("");
+      setSelectedTemplate(null);
       router.push(`/${productId}/campaigns/${campaign.id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create campaign");
@@ -142,7 +149,7 @@ export default function CampaignsPage() {
               New Campaign
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Create Campaign</DialogTitle>
             </DialogHeader>
@@ -157,13 +164,46 @@ export default function CampaignsPage() {
                   required
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Start from a template (optional)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {campaignTemplates.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        if (selectedTemplate?.id === t.id) {
+                          setSelectedTemplate(null);
+                          if (!newName) setNewName("");
+                        } else {
+                          setSelectedTemplate(t);
+                          if (!newName) setNewName(t.campaignName);
+                        }
+                      }}
+                      className={`flex items-start gap-2 rounded-lg border p-2.5 text-left text-xs transition-colors ${
+                        selectedTemplate?.id === t.id
+                          ? "border-primary bg-primary/10 ring-1 ring-primary"
+                          : "hover:border-muted-foreground/30 hover:bg-muted/50"
+                      }`}
+                    >
+                      <Workflow className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0">
+                        <p className="font-medium leading-tight">{t.label}</p>
+                        <p className="text-muted-foreground mt-0.5 leading-tight">{t.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full"
                 disabled={creating || !newName.trim()}
               >
                 {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Create & Open Builder
+                {selectedTemplate ? "Create from Template" : "Create & Open Builder"}
               </Button>
             </form>
           </DialogContent>

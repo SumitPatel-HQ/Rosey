@@ -7,6 +7,17 @@ import {
   type ParsedWorkflowNode,
   type WorkflowHandlers,
 } from "@/lib/workflow-engine";
+import {
+  checkSuppression,
+  buildComplianceFooter,
+  buildUnsubscribeUrl,
+} from "@/lib/compliance";
+import {
+  getEffectiveDailyLimit,
+  advanceWarmupDay,
+  recordDeliverabilityEvent,
+  classifyBounceType,
+} from "@/lib/deliverability";
 
 function getSupabase() {
   return createClient(
@@ -196,6 +207,16 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
   },
 
   send_email: async (node, context) => {
+    // ── Suppression check ────────────────────────────────────────────────
+    const isSuppressed = await checkSuppression(context.supabase, context.lead.email);
+    if (isSuppressed) {
+      await logAction(context.supabase, context.campaignLead.id, "send_email", "skipped", {
+        reason: "suppressed",
+        email: context.lead.email,
+      });
+      return {}; // advance to next node without sending
+    }
+
     const prompt = getEmailPrompt(node);
     const mode =
       typeof node.data.mode === "string" && node.data.mode === "same_for_all"
@@ -268,12 +289,17 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
       htmlBody = message.body;
     }
 
+    // ── Compliance footer + unsubscribe URL ──────────────────────────────
+    const unsubscribeUrl = buildUnsubscribeUrl(context.campaignLead.id);
+    htmlBody += buildComplianceFooter(unsubscribeUrl);
+
     const sent = await sendEmail({
       to: context.lead.email,
       subject,
       htmlBody,
       threadId,
       replyToMessageId: lastMessageId,
+      unsubscribeUrl,
     });
 
     threadId = sent.threadId;
@@ -296,6 +322,16 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
         await applyLabelToMessage(sent.messageId, context.labelId);
       }
     }
+
+    // Increment followup_count after successful send
+    await context.supabase
+      .from("campaign_leads")
+      .update({ followup_count: (context.campaignLead.followup_count || 0) + 1 })
+      .eq("id", context.campaignLead.id);
+    context.campaignLead.followup_count = (context.campaignLead.followup_count || 0) + 1;
+
+    // Record deliverability event
+    await recordDeliverabilityEvent(context.supabase, context.campaignLead.id, "sent");
 
     await logAction(
       context.supabase,
@@ -495,11 +531,12 @@ async function sweepRepliedLeads(
 
   for (const cl of waitingLeads) {
     if (!cl.thread_id) continue;
+    const leadData = cl.lead as unknown as { email: string } | null;
     try {
       const hasReply = await hasThreadReceivedReply(
         cl.thread_id,
         senderEmail,
-        cl.lead?.email
+        leadData?.email
       );
       if (hasReply) {
         // Mark as replied and accelerate — set next_action_time to now so the
@@ -587,22 +624,27 @@ export async function processActiveCampaigns(): Promise<{
       continue;
     }
 
-    // ── Rate limiting ────────────────────────────────────────────────────────
+    // ── Rate limiting (with warm-up integration) ──────────────────────────
     const rateLimit = campaign.email_rate_limit_per_hour ?? null;
+    const { limit: effectiveLimit, warmup } = await getEffectiveDailyLimit(
+      supabase,
+      campaign.id,
+      rateLimit
+    );
     let emailBudget = Infinity; // max emails to send this sweep for this campaign
 
-    if (rateLimit !== null && rateLimit > 0) {
+    if (effectiveLimit !== Infinity && effectiveLimit > 0) {
       const sentInLastHour = await getEmailsSentInLastHour(supabase, campaign.id);
-      const remaining = rateLimit - sentInLastHour;
+      const remaining = effectiveLimit - sentInLastHour;
       if (remaining <= 0) {
         console.log(
-          `Campaign ${campaign.id}: rate limit reached (${sentInLastHour}/${rateLimit} per hour). Skipping sweep.`
+          `Campaign ${campaign.id}: rate limit reached (${sentInLastHour}/${effectiveLimit} per hour${warmup ? `, warmup day ${warmup.day_number}` : ""}). Skipping sweep.`
         );
         continue; // skip this campaign entirely this sweep
       }
       emailBudget = remaining;
       console.log(
-        `Campaign ${campaign.id}: email budget this sweep = ${emailBudget} (${sentInLastHour}/${rateLimit} used)`
+        `Campaign ${campaign.id}: email budget this sweep = ${emailBudget} (${sentInLastHour}/${effectiveLimit} used${warmup ? `, warmup phase: ${warmup.phase}` : ""})`
       );
     }
 
@@ -650,6 +692,15 @@ export async function processActiveCampaigns(): Promise<{
           );
         } catch (error) {
           console.error(`Error processing campaign_lead ${campaignLead.id}:`, error);
+
+          // Classify bounce type for deliverability tracking
+          const bounceType = classifyBounceType(error);
+          if (bounceType) {
+            await recordDeliverabilityEvent(supabase, campaignLead.id, bounceType, {
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+
           await markFailed(
             supabase,
             campaignLead.id,
@@ -675,6 +726,13 @@ export async function processActiveCampaigns(): Promise<{
         .from("campaigns")
         .update({ status: "completed" })
         .eq("id", campaign.id);
+    }
+
+    // Advance warm-up schedule (once per engine tick per campaign)
+    try {
+      await advanceWarmupDay(supabase, campaign.id);
+    } catch (err) {
+      console.error(`Failed to advance warmup for campaign ${campaign.id}:`, err);
     }
   }
 

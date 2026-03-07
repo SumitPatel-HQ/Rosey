@@ -130,3 +130,40 @@ export interface ConditionNodeData {
   check: "replied" | "not_replied";
   [key: string]: unknown;
 }
+
+// ── Compliance types ────────────────────────────────────────────────────────
+
+export interface SuppressionEntry {
+  id: string;
+  email: string;
+  reason: string;
+  created_at: string;
+}
+
+export interface UnsubscribeRecord {
+  id: string;
+  campaign_lead_id: string;
+  email: string;
+  token: string;
+  created_at: string;
+}
+
+// ── Deliverability types ────────────────────────────────────────────────────
+
+export interface WarmupSchedule {
+  id: string;
+  campaign_id: string;
+  day_number: number;
+  daily_limit: number;
+  phase: "warmup" | "rampup" | "full";
+  started_at: string;
+  updated_at: string;
+}
+
+export interface DeliverabilityEvent {
+  id: string;
+  campaign_lead_id: string;
+  event_type: "sent" | "bounced_hard" | "bounced_soft" | "complaint";
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
