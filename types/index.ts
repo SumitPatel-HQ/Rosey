@@ -54,6 +54,7 @@ export interface Lead {
   product_id: string;
   name: string;
   email: string;
+  phone: string | null;
   company: string | null;
   industry: string | null;
   tags: string[];
@@ -90,6 +91,8 @@ export interface CampaignLead {
   thread_id: string | null;
   last_message_id: string | null;
   thread_subject: string | null;
+  whatsapp_jid: string | null;
+  whatsapp_last_msg_ts: number | null;
   created_at: string;
   lead?: Lead;
   campaign?: Campaign;
@@ -131,6 +134,7 @@ export interface WorkflowNode {
     | "checkReply"
     | "sendFollowup"
     | "auto_reply"
+    | "send_whatsapp"
     | "end";
   position: { x: number; y: number };
   data: Record<string, unknown>;
@@ -142,6 +146,13 @@ export interface WorkflowEdge {
   target: string;
   sourceHandle?: string;
   condition?: string;
+}
+
+export interface WhatsAppNodeData {
+  prompt: string;
+  mode: "personalized" | "same_for_all";
+  cached_body?: string;
+  [key: string]: unknown;
 }
 
 export interface SendEmailNodeData {
