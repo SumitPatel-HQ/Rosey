@@ -67,7 +67,7 @@ export const campaignTemplates: CampaignTemplate[] = [
         {
           id: "email-1",
           type: "send_email",
-          position: { x: 300, y: 180 },
+          position: { x: 300, y: 200 },
           data: {
             prompt:
               "Write a short, personalized cold outreach email introducing our product. Plain text only, no HTML. Under 100 words, conversational tone as if writing to a colleague. End with a single soft question asking if they'd be open to a quick chat.",
@@ -77,17 +77,17 @@ export const campaignTemplates: CampaignTemplate[] = [
         {
           id: "wait-1",
           type: "wait",
-          position: { x: 300, y: 340 },
+          position: { x: 300, y: 700 },
           data: { duration: 3, unit: "days" },
         },
         {
           id: "check-1",
           type: "condition",
-          position: { x: 300, y: 500 },
+          position: { x: 300, y: 920 },
           data: { check: "replied" },
         },
-        { id: "end-replied", type: "end", position: { x: 100, y: 660 }, data: {} },
-        { id: "end-no-reply", type: "end", position: { x: 500, y: 660 }, data: {} },
+        { id: "end-replied", type: "end", position: { x: 80, y: 1210 }, data: {} },
+        { id: "end-no-reply", type: "end", position: { x: 520, y: 1210 }, data: {} },
       ],
       edges: [
         { id: "e-1", source: "start-1", target: "email-1" },
@@ -109,7 +109,7 @@ export const campaignTemplates: CampaignTemplate[] = [
         {
           id: "email-1",
           type: "send_email",
-          position: { x: 350, y: 180 },
+          position: { x: 350, y: 200 },
           data: {
             prompt:
               "Write a personalized cold email introducing our product. Plain text only, no HTML. Focus on one specific pain point relevant to the recipient's industry. Under 120 words, conversational and direct. End with a single open question.",
@@ -119,20 +119,20 @@ export const campaignTemplates: CampaignTemplate[] = [
         {
           id: "wait-1",
           type: "wait",
-          position: { x: 350, y: 340 },
+          position: { x: 350, y: 700 },
           data: { duration: 3, unit: "days" },
         },
         {
           id: "check-1",
           type: "condition",
-          position: { x: 350, y: 480 },
+          position: { x: 350, y: 920 },
           data: { check: "replied" },
         },
-        { id: "end-replied-1", type: "end", position: { x: 100, y: 600 }, data: {} },
+        { id: "end-replied-1", type: "end", position: { x: 80, y: 1210 }, data: {} },
         {
           id: "email-2",
           type: "send_email",
-          position: { x: 500, y: 620 },
+          position: { x: 620, y: 1210 },
           data: {
             prompt:
               "Write a brief follow-up email referencing the previous outreach. Plain text only, no HTML. Add one new piece of value — a concrete benefit or a relevant example. Under 80 words, friendly and direct, not pushy.",
@@ -142,17 +142,17 @@ export const campaignTemplates: CampaignTemplate[] = [
         {
           id: "wait-2",
           type: "wait",
-          position: { x: 500, y: 780 },
+          position: { x: 620, y: 1710 },
           data: { duration: 4, unit: "days" },
         },
         {
           id: "check-2",
           type: "condition",
-          position: { x: 500, y: 920 },
+          position: { x: 620, y: 1930 },
           data: { check: "replied" },
         },
-        { id: "end-replied-2", type: "end", position: { x: 300, y: 1060 }, data: {} },
-        { id: "end-final", type: "end", position: { x: 700, y: 1060 }, data: {} },
+        { id: "end-replied-2", type: "end", position: { x: 400, y: 2220 }, data: {} },
+        { id: "end-final", type: "end", position: { x: 780, y: 2220 }, data: {} },
       ],
       edges: [
         { id: "e-1", source: "start-1", target: "email-1" },
@@ -178,7 +178,7 @@ export const campaignTemplates: CampaignTemplate[] = [
         {
           id: "email-1",
           type: "send_email",
-          position: { x: 350, y: 180 },
+          position: { x: 350, y: 200 },
           data: {
             prompt:
               "Write a warm, personalized introduction email. Plain text only, no HTML. Mention one specific pain point for the recipient's industry and briefly explain how our product helps. Under 100 words, written like a person, not a marketing template.",
@@ -188,20 +188,20 @@ export const campaignTemplates: CampaignTemplate[] = [
         {
           id: "wait-1",
           type: "wait",
-          position: { x: 350, y: 340 },
+          position: { x: 350, y: 700 },
           data: { duration: 2, unit: "days" },
         },
         {
           id: "check-1",
           type: "condition",
-          position: { x: 350, y: 480 },
+          position: { x: 350, y: 920 },
           data: { check: "replied" },
         },
-        { id: "end-1", type: "end", position: { x: 100, y: 600 }, data: {} },
+        { id: "end-1", type: "end", position: { x: 80, y: 1210 }, data: {} },
         {
           id: "email-2",
           type: "send_email",
-          position: { x: 500, y: 620 },
+          position: { x: 620, y: 1210 },
           data: {
             prompt:
               "Write a follow-up email adding social proof. Plain text only, no HTML. Mention a relevant customer win or metric in one line. Reference the previous email briefly. Under 80 words.",
@@ -211,27 +211,27 @@ export const campaignTemplates: CampaignTemplate[] = [
         {
           id: "wait-2",
           type: "wait",
-          position: { x: 500, y: 780 },
+          position: { x: 620, y: 1710 },
           data: { duration: 3, unit: "days" },
         },
         {
           id: "check-2",
           type: "condition",
-          position: { x: 500, y: 920 },
+          position: { x: 620, y: 1930 },
           data: { check: "replied" },
         },
-        { id: "end-2", type: "end", position: { x: 300, y: 1040 }, data: {} },
+        { id: "end-2", type: "end", position: { x: 400, y: 2220 }, data: {} },
         {
           id: "email-3",
           type: "send_email",
-          position: { x: 650, y: 1060 },
+          position: { x: 820, y: 2220 },
           data: {
             prompt:
               "Write a final breakup email. Plain text only, no HTML. Be friendly but direct — acknowledge this is the last reach out. Offer one simple, low-commitment CTA. Under 60 words.",
             mode: "personalized",
           },
         },
-        { id: "end-3", type: "end", position: { x: 650, y: 1220 }, data: {} },
+        { id: "end-3", type: "end", position: { x: 820, y: 2720 }, data: {} },
       ],
       edges: [
         { id: "e-1", source: "start-1", target: "email-1" },
@@ -265,7 +265,7 @@ export const campaignTemplates: CampaignTemplate[] = [
             mode: "same_for_all",
           },
         },
-        { id: "end-1", type: "end", position: { x: 300, y: 380 }, data: {} },
+        { id: "end-1", type: "end", position: { x: 300, y: 700 }, data: {} },
       ],
       edges: [
         { id: "e-1", source: "start-1", target: "email-1" },
