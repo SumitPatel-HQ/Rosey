@@ -35,14 +35,14 @@ import { AutomationPanel } from "@/components/campaign/automation-panel";
 import {
   Save, Play, StopCircle, Loader2, BarChart3, Users, Mail, Clock,
   GitBranch, Square, ChevronLeft, Workflow, Inbox, Gauge, RefreshCw,
-  MessageSquareReply, BrainCircuit,
+  MessageSquareReply, BrainCircuit, Settings,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@/types";
 
-type View = "workflow" | "leads" | "analytics" | "automation" | "inbox";
+type View = "workflow" | "leads" | "analytics" | "automation" | "inbox" | "settings";
 
 // ─── Node palette items & sidebar nav ────────────────────────────────────────
 
@@ -417,6 +417,23 @@ function BuilderInner() {
               </div>
             </>
           )}
+
+          {/* Campaign settings — pinned to bottom */}
+          <div className="mt-auto flex flex-col gap-1">
+            <Separator className="my-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "justify-start gap-2 w-full",
+                view === "settings" && "bg-primary/10 text-primary"
+              )}
+              onClick={() => setView("settings")}
+            >
+              <Settings className="h-4 w-4" />
+              Campaign Settings
+            </Button>
+          </div>
         </div>
 
         {/* Main content area */}
@@ -453,6 +470,78 @@ function BuilderInner() {
           )}
           {view === "inbox" && (
             <InboxPanel key={refreshKey} campaignId={campaignId} productId={productId} />
+          )}
+          {view === "settings" && campaign && (
+            <div className="h-full overflow-y-auto p-6">
+              <div className="max-w-lg space-y-6">
+                <div>
+                  <h2 className="text-lg font-semibold">Campaign Settings</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Manage settings for this campaign.</p>
+                </div>
+                <Separator />
+                {/* Campaign name */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Campaign Name</label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={campaign.name}
+                      onChange={(e) => setCampaign({ ...campaign, name: e.target.value })}
+                      placeholder="Campaign name"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/campaigns/${campaignId}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ name: campaign.name }),
+                          });
+                          if (!res.ok) throw new Error();
+                          toast.success("Campaign name updated");
+                        } catch {
+                          toast.error("Failed to update name");
+                        }
+                      }}
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </div>
+                {/* Email rate limit */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email Rate Limit</label>
+                  <p className="text-xs text-muted-foreground">Max emails sent per hour. Leave blank for no limit.</p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={rateLimitValue}
+                      onChange={(e) => setRateLimitValue(e.target.value)}
+                      placeholder="e.g. 20"
+                      className="w-36"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleRateLimitSave(rateLimitValue)}
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </div>
+                {/* Status */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status</label>
+                  <div>
+                    <Badge variant={campaign.status === "active" ? "default" : "secondary"} className="capitalize">
+                      {campaign.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
