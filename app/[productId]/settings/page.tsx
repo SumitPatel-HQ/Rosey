@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   Plus, Trash2, ChevronDown, ChevronUp, Upload, FileText,
   HelpCircle, Save, Loader2, X, Check, Package,
+  MessageCircle, Wifi, WifiOff, QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,6 +157,125 @@ interface ProductData {
   knowledge_base: AutomationContext;
 }
 
+// ── WhatsApp connection panel ─────────────────────────────────────────────────
+
+function WhatsAppSettings() {
+  const [status, setStatus] = useState<{ connected: boolean; phone: string | null } | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  const refresh = useCallback(async () => {
+    const [statusRes, qrRes] = await Promise.all([
+      fetch("/api/whatsapp/status")
+        .then((r) => r.json())
+        .catch(() => ({ connected: false, phone: null })),
+      fetch("/api/whatsapp/qr")
+        .then((r) => r.json())
+        .catch(() => ({})),
+    ]);
+    setStatus(statusRes);
+    setQr(qrRes.qr ?? null);
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    // Poll every 3 s so the UI updates automatically after scanning
+    const id = setInterval(refresh, 3_000);
+    return () => clearInterval(id);
+  }, [refresh]);
+
+  async function handleDisconnect() {
+    setDisconnecting(true);
+    await fetch("/api/whatsapp/session", { method: "DELETE" });
+    setStatus({ connected: false, phone: null });
+    setQr(null);
+    setTimeout(refresh, 4_000);
+    setDisconnecting(false);
+  }
+
+  return (
+    <div className="max-w-md space-y-6">
+      <div>
+        <h3 className="text-base font-semibold flex items-center gap-2">
+          <MessageCircle className="h-4 w-4 text-teal-600" />
+          WhatsApp Connection
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Connect a WhatsApp account to send messages via workflow automation.
+          Start the worker (<code className="font-mono text-xs bg-muted px-1 rounded">pnpm worker</code>),
+          then scan the QR code below with your WhatsApp mobile app.
+        </p>
+      </div>
+
+      {status === null && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Checking connection…
+        </div>
+      )}
+
+      {status?.connected ? (
+        <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-4 dark:border-teal-900/50 dark:bg-teal-950/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Wifi className="h-4 w-4 text-teal-600" />
+              <span className="text-sm font-medium text-teal-700 dark:text-teal-300">Connected</span>
+              {status.phone && (
+                <span className="text-xs text-muted-foreground">+{status.phone}</span>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+              className="text-destructive hover:bg-destructive/5"
+            >
+              {disconnecting ? (
+                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              ) : (
+                <WifiOff className="h-3 w-3 mr-1" />
+              )}
+              Disconnect
+            </Button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            ✓ Send WhatsApp nodes in your campaigns will use this account.
+          </p>
+        </div>
+      ) : qr ? (
+        <div className="space-y-3">
+          <p className="flex items-center gap-1.5 text-sm text-amber-600">
+            <QrCode className="h-4 w-4" />
+            Open WhatsApp → Linked Devices → Link a device, then scan:
+          </p>
+          <div className="rounded-xl border border-slate-200 bg-white p-3 inline-block dark:border-slate-700 dark:bg-slate-900">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={qr} alt="WhatsApp QR code" className="w-56 h-56" />
+          </div>
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Waiting for scan… (refreshes automatically)
+          </p>
+        </div>
+      ) : status && !status.connected ? (
+        <div className="rounded-xl border border-dashed bg-muted/20 p-5 text-sm text-muted-foreground space-y-1">
+          <p className="flex items-center gap-2">
+            <WifiOff className="h-4 w-4" />
+            Worker not running or WhatsApp not yet initialised.
+          </p>
+          <p>
+            Run <code className="font-mono text-xs bg-muted px-1 rounded">pnpm worker</code> on your
+            GCP VM, then return here — the QR will appear automatically.
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function ProductSettingsPage() {
   const params = useParams();
   const productId = params.productId as string;
@@ -172,6 +292,9 @@ export default function ProductSettingsPage() {
   // KB editor
   const [kbItems, setKbItems] = useState<KnowledgeBaseItem[]>([]);
   const [savingKb, setSavingKb] = useState(false);
+
+  // Tab
+  const [settingsTab, setSettingsTab] = useState<"kb" | "whatsapp">("kb");
 
   // Add FAQ inline form
   const [addFaqOpen, setAddFaqOpen] = useState(false);
@@ -332,6 +455,27 @@ export default function ProductSettingsPage() {
           </p>
         </div>
 
+        {/* ── Tab switcher ── */}
+        <div className="flex gap-0 border-b border-border">
+          {(["kb", "whatsapp"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setSettingsTab(tab)}
+              className={[
+                "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+                settingsTab === tab
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              {tab === "kb" ? "Knowledge Base" : "WhatsApp"}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Tab Content ── */}
+        {settingsTab === "kb" && (
+          <>
         {/* ── Product Details ── */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
@@ -470,6 +614,10 @@ export default function ProductSettingsPage() {
             </div>
           )}
         </section>
+          </>
+        )}
+
+        {settingsTab === "whatsapp" && <WhatsAppSettings />}
       </div>
 
       {/* ── Paste Text Dialog ── */}
