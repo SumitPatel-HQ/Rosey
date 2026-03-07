@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { syncCampaignReplyStatus } from "@/lib/reply-sync";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -7,6 +8,11 @@ export async function GET(
 ) {
   const { id } = await params;
   const supabase = await createClient();
+  try {
+    await syncCampaignReplyStatus(supabase, id);
+  } catch {
+    // Non-fatal; fallback to returning current DB values.
+  }
 
   const { data, error } = await supabase
     .from("campaign_leads")
