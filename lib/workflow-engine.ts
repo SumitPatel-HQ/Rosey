@@ -5,6 +5,7 @@ export type NormalizedWorkflowNodeType =
   | "send_email"
   | "wait"
   | "condition"
+  | "auto_reply"
   | "end";
 
 export interface ParsedWorkflowNode extends WorkflowNode {
@@ -63,6 +64,8 @@ export function normalizeNodeType(type: string): NormalizedWorkflowNodeType {
     case "condition":
     case "checkReply":
       return "condition";
+    case "auto_reply":
+      return "auto_reply";
     case "end":
       return "end";
     default:
@@ -100,17 +103,26 @@ export function parseWorkflow(workflow: WorkflowJSON): ParsedWorkflow {
   }
 
   for (const node of nodesById.values()) {
-    if (node.normalizedType !== "condition") continue;
+    if (node.normalizedType !== "condition" && node.normalizedType !== "auto_reply") continue;
 
     const outgoing = outgoingBySource.get(node.id) || [];
     const branchKeys = new Set(
       outgoing.map((edge) => edge.conditionKey).filter(Boolean)
     );
 
-    if (!branchKeys.has("yes") || !branchKeys.has("no")) {
-      throw new Error(
-        `Condition node ${node.id} must define both "yes" and "no" branches`
-      );
+    if (node.normalizedType === "condition") {
+      if (!branchKeys.has("yes") || !branchKeys.has("no")) {
+        throw new Error(
+          `Condition node ${node.id} must define both "yes" and "no" branches`
+        );
+      }
+    } else {
+      // auto_reply
+      if (!branchKeys.has("answered") || !branchKeys.has("unanswered")) {
+        throw new Error(
+          `Auto Reply node ${node.id} must define both "answered" and "unanswered" branches`
+        );
+      }
     }
   }
 
