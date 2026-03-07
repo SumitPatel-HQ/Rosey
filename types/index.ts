@@ -1,3 +1,30 @@
+// ── Automation / Knowledge Base types ─────────────────────────────────────
+
+export interface KnowledgeBaseItem {
+  id: string;
+  type: "faq" | "text";
+  /** FAQ only */
+  question?: string;
+  answer?: string;
+  /** Plain-text block only */
+  content?: string;
+  /** Human-readable label shown in the UI */
+  label?: string;
+}
+
+export interface AutomationContext {
+  items: KnowledgeBaseItem[];
+}
+
+export interface AutoReplyNodeData {
+  tone_prompt: string;
+  use_product_context: boolean;
+  use_campaign_context: boolean;
+  [key: string]: unknown;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+
 export interface Product {
   id: string;
   name: string;
@@ -5,6 +32,8 @@ export interface Product {
   sheet_id: string | null;
   drive_folder_id: string | null;
   gmail_label_prefix: string | null;
+  /** Campaign-agnostic knowledge base inherited by all campaigns. */
+  knowledge_base: AutomationContext;
   created_at: string;
 }
 
@@ -42,6 +71,8 @@ export interface Campaign {
   gmail_label_id: string | null;
   /** Max outbound emails per hour for this campaign. null = unlimited. */
   email_rate_limit_per_hour: number | null;
+  /** Campaign-scoped knowledge base for the Auto Reply node. */
+  automation_context: AutomationContext;
   created_at: string;
   product?: Product;
 }
@@ -99,6 +130,7 @@ export interface WorkflowNode {
     | "condition"
     | "checkReply"
     | "sendFollowup"
+    | "auto_reply"
     | "end";
   position: { x: number; y: number };
   data: Record<string, unknown>;
