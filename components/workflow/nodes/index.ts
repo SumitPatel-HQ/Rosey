@@ -3,6 +3,7 @@ import { StartNode } from "./start-node";
 import { SendEmailNode } from "./send-email-node";
 import { WaitNode } from "./wait-node";
 import { ConditionNode } from "./condition-node";
+import { AutoReplyNode } from "./auto-reply-node";
 import { EndNode } from "./end-node";
 
 export const nodeTypes: NodeTypes = {
@@ -10,7 +11,8 @@ export const nodeTypes: NodeTypes = {
   send_email: SendEmailNode,
   wait: WaitNode,
   condition: ConditionNode,
+  auto_reply: AutoReplyNode,
   end: EndNode,
 };
 
-export { StartNode, SendEmailNode, WaitNode, ConditionNode, EndNode };
+export { StartNode, SendEmailNode, WaitNode, ConditionNode, AutoReplyNode, EndNode };
