@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { sendEmail, applyLabelToThread, getLastRfcMessageId } from "@/lib/gmail";
+import { sendEmail, applyLabelToThread, getLastRfcMessageId, getAllRfcMessageIds } from "@/lib/gmail";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -39,25 +39,42 @@ export async function POST(
   }
 
   try {
-    // Fetch the actual last RFC Message-ID from the Gmail thread so that
-    // In-Reply-To / References point to the real last message (which may be
-    // an inbound reply from the lead, not the stored outbound message ID).
+    // Fetch RFC threading headers from the Gmail thread:
+    //   - In-Reply-To  → the last message's RFC Message-ID
+    //   - References   → ALL RFC Message-IDs in the thread (RFC 2822 compliance)
+    // Both are required for Gmail (threadId param) AND external email clients to
+    // display the message as an in-thread reply rather than a standalone email.
     let replyToMessageId: string | undefined = campaignLead.last_message_id ?? undefined;
+    let referencesChain: string | undefined;
     if (campaignLead.thread_id) {
       try {
-        const lastRfc = await getLastRfcMessageId(campaignLead.thread_id);
+        const [lastRfc, allRfc] = await Promise.all([
+          getLastRfcMessageId(campaignLead.thread_id),
+          getAllRfcMessageIds(campaignLead.thread_id),
+        ]);
         if (lastRfc) replyToMessageId = lastRfc;
+        if (allRfc) referencesChain = allRfc;
       } catch {
         // Non-fatal — fall back to stored last_message_id
       }
     }
 
+    // When replying into an existing thread, always use Re: <original subject>
+    // so that Gmail's subject-matching check passes when inserting into the thread.
+    const replySubject =
+      campaignLead.thread_id && campaignLead.thread_subject
+        ? campaignLead.thread_subject.startsWith("Re: ")
+          ? campaignLead.thread_subject
+          : `Re: ${campaignLead.thread_subject}`
+        : subject;
+
     const { messageId, threadId, rfcMessageId } = await sendEmail({
       to: lead.email,
-      subject,
+      subject: replySubject,
       htmlBody,
       threadId: campaignLead.thread_id ?? undefined,
       replyToMessageId,
+      referencesChain,
     });
 
     // Persist thread state back to DB

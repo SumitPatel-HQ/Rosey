@@ -535,8 +535,9 @@ export function InboxPanel({ campaignId }: InboxPanelProps) {
 
             <Separator />
 
-            {/* Compose */}
+            {/* Compose — key forces remount when lead changes so useState reinitialises */}
             <ComposeBox
+              key={selectedLead.id}
               campaignLeadId={selectedLead.id}
               defaultSubject={selectedLead.thread_subject ?? ""}
               onSent={handleSent}

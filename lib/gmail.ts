@@ -24,11 +24,15 @@ export async function sendEmail(params: {
   htmlBody: string;
   threadId?: string;
   replyToMessageId?: string;
+  /** Space-separated list of all RFC Message-IDs in the thread chain (RFC 2822 References header). */
+  referencesChain?: string;
 }): Promise<{ messageId: string; threadId: string; rfcMessageId: string | null }> {
   const gmail = getGmailClient();
-  const { to, subject, htmlBody, threadId, replyToMessageId } = params;
+  const { to, subject, htmlBody, threadId, replyToMessageId, referencesChain } = params;
 
   const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString("base64")}?=`;
+  // Use the full references chain when available; fall back to just the direct parent.
+  const referencesValue = referencesChain || replyToMessageId || null;
   const messageParts = [
     `From: ${process.env.GMAIL_USER_EMAIL}`,
     `To: ${to}`,
@@ -38,7 +42,7 @@ export async function sendEmail(params: {
     ...(replyToMessageId
       ? [
           `In-Reply-To: ${replyToMessageId}`,
-          `References: ${replyToMessageId}`,
+          `References: ${referencesValue}`,
         ]
       : []),
     "",
@@ -208,7 +212,7 @@ function extractBody(part: GmailPart | null | undefined): string {
 
 /**
  * Return the RFC Message-ID header of the last message in a thread.
- * Used to set In-Reply-To / References headers for proper email threading.
+ * Used to set In-Reply-To header for proper email threading.
  */
 export async function getLastRfcMessageId(
   threadId: string
@@ -227,6 +231,32 @@ export async function getLastRfcMessageId(
     (h) => h.name?.toLowerCase() === "message-id"
   );
   return header?.value || null;
+}
+
+/**
+ * Return ALL RFC Message-IDs in a thread as a space-separated string,
+ * suitable for use as the RFC 2822 References header when composing a reply.
+ */
+export async function getAllRfcMessageIds(
+  threadId: string
+): Promise<string | null> {
+  const gmail = getGmailClient();
+  const res = await gmail.users.threads.get({
+    userId: "me",
+    id: threadId,
+    format: "metadata",
+    metadataHeaders: ["Message-ID"],
+  });
+  const messages = res.data.messages || [];
+  if (messages.length === 0) return null;
+  const ids = messages
+    .map((msg) =>
+      msg.payload?.headers?.find(
+        (h) => h.name?.toLowerCase() === "message-id"
+      )?.value
+    )
+    .filter((v): v is string => Boolean(v));
+  return ids.length > 0 ? ids.join(" ") : null;
 }
 
 export async function getThreadMessages(

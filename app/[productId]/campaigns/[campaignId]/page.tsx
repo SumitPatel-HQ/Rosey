@@ -33,7 +33,7 @@ import { LeadsPanel } from "@/components/campaign/leads-panel";
 import { InboxPanel } from "@/components/campaign/inbox-panel";
 import {
   Save, Play, StopCircle, Loader2, BarChart3, Users, Mail, Clock,
-  GitBranch, Square, ChevronLeft, Workflow, Inbox, Gauge,
+  GitBranch, Square, ChevronLeft, Workflow, Inbox, Gauge, RefreshCw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -72,6 +72,8 @@ function BuilderInner() {
   const [stopping, setStopping] = useState(false);
   const [view, setView] = useState<View>("workflow");
   const [rateLimitValue, setRateLimitValue] = useState<string>("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const loadedRef = useRef(false);
 
   const {
@@ -178,6 +180,26 @@ function BuilderInner() {
     }
   }, [campaignId, toObject]);
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const data = await fetch(`/api/campaigns/${campaignId}`).then((r) => r.json());
+      setCampaign(data);
+      setRateLimitValue(
+        data.email_rate_limit_per_hour != null
+          ? String(data.email_rate_limit_per_hour)
+          : ""
+      );
+      loadWorkflow(data.workflow_json?.nodes || [], data.workflow_json?.edges || []);
+      setRefreshKey((k) => k + 1);
+      toast.success("Refreshed");
+    } catch {
+      toast.error("Failed to refresh");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [campaignId, loadWorkflow]);
+
   async function handleStop() {
     setStopping(true);
     try {
@@ -252,9 +274,10 @@ function BuilderInner() {
             {campaign.status}
           </Badge>
         </div>
-        {view === "workflow" && (
-          <div className="flex items-center gap-2">
-            {/* Email rate limit */}
+        <div className="flex items-center gap-2">
+          {view === "workflow" && (
+            <>
+              {/* Email rate limit */}
             <div className="flex items-center gap-1.5 border rounded-md px-2 py-1 bg-muted/40">
               <Gauge className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <Input
@@ -328,8 +351,12 @@ function BuilderInner() {
                 </AlertDialogContent>
               </AlertDialog>
             )}
-          </div>
-        )}
+            </>
+          )}
+          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={refreshing} title="Refresh all data">
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       {/* Body */}
@@ -412,13 +439,13 @@ function BuilderInner() {
             </div>
           )}
           {view === "leads" && (
-            <LeadsPanel campaignId={campaignId} productId={productId} />
+            <LeadsPanel key={refreshKey} campaignId={campaignId} productId={productId} />
           )}
           {view === "analytics" && (
-            <AnalyticsPanel campaignId={campaignId} />
+            <AnalyticsPanel key={refreshKey} campaignId={campaignId} />
           )}
           {view === "inbox" && (
-            <InboxPanel campaignId={campaignId} productId={productId} />
+            <InboxPanel key={refreshKey} campaignId={campaignId} productId={productId} />
           )}
         </div>
       </div>
