@@ -6,6 +6,7 @@ type LeadInsert = {
   product_id: string;
   name: string;
   email: string;
+  phone: string | null;
   company: string | null;
   industry: string | null;
   tags: string[];
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
     const strRows = parsed.map((r) =>
       Object.fromEntries(Object.entries(r).map(([k, v]) => [k, String(v ?? "")]))
     );
-    const { emailCol, nameCol } = detectColumns(strRows);
+    const { emailCol, nameCol, phoneCol } = detectColumns(strRows);
 
     if (!emailCol) {
       return NextResponse.json(
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
           product_id: productId,
           name,
           email,
+          phone: phoneCol ? row[phoneCol]?.trim() || null : null,
           company: companyCol ? row[companyCol]?.trim() || null : null,
           industry: industryCol ? row[industryCol]?.trim() || null : null,
           tags: rawTags
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest) {
     }
 
     const headers = Object.keys(rows[0]);
-    const { emailCol, nameCol } = detectColumns(rows);
+    const { emailCol, nameCol, phoneCol } = detectColumns(rows);
 
     if (!emailCol) {
       return NextResponse.json(
@@ -124,6 +126,7 @@ export async function POST(request: NextRequest) {
           product_id: productId,
           name,
           email,
+          phone: phoneCol ? row[phoneCol]?.trim() || null : null,
           company: companyCol ? row[companyCol]?.trim() || null : null,
           industry: industryCol ? row[industryCol]?.trim() || null : null,
           tags: rawTags
