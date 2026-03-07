@@ -167,3 +167,114 @@ export interface DeliverabilityEvent {
   metadata: Record<string, unknown>;
   created_at: string;
 }
+
+// ── Analytics Dashboard types ───────────────────────────────────────────────
+
+export interface PipelineStage {
+  stage: string;
+  count: number;
+  color: string;
+}
+
+export interface DailyVolume {
+  date: string;
+  sent: number;
+  replies: number;
+}
+
+export interface FollowupEffectiveness {
+  step: number;
+  label: string;
+  sent: number;
+  replies: number;
+  replyRate: number;
+}
+
+export interface ActivityEvent {
+  id: string;
+  action: string;
+  status: string;
+  leadName: string;
+  leadEmail: string;
+  createdAt: string;
+  metadata: Record<string, unknown> | null;
+}
+
+export interface LeadPerformance {
+  id: string;
+  campaignLeadId: string;
+  name: string;
+  email: string;
+  company: string | null;
+  status: string;
+  replied: boolean;
+  followupCount: number;
+  lastActionTime: string | null;
+}
+
+export interface CampaignHealthScore {
+  overall: number;
+  factors: {
+    replyRate: { score: number; max: number; detail: string };
+    bounceRate: { score: number; max: number; detail: string };
+    completionRate: { score: number; max: number; detail: string };
+    unsubRate: { score: number; max: number; detail: string };
+    velocity: { score: number; max: number; detail: string };
+  };
+  grade: "A" | "B" | "C" | "D" | "F";
+}
+
+export interface EnrichedAnalytics {
+  /** Basic counters */
+  totalLeads: number;
+  emailsSent: number;
+  emailsSkipped: number;
+  replies: number;
+  replyRate: number;
+  completed: number;
+  failed: number;
+  inProgress: number;
+  totalFollowups: number;
+  /** Pipeline funnel */
+  pipeline: PipelineStage[];
+  /** Daily send volume (last 30 days) */
+  dailyVolume: DailyVolume[];
+  /** Follow-up effectiveness by step */
+  followupEffectiveness: FollowupEffectiveness[];
+  /** Recent activity feed */
+  recentActivity: ActivityEvent[];
+  /** Lead-level performance */
+  leadPerformance: LeadPerformance[];
+  /** Campaign health score */
+  healthScore: CampaignHealthScore;
+}
+
+export interface ComplianceAudit {
+  suppressionCount: number;
+  unsubscribeCount: number;
+  bounceCount: number;
+  totalEmailsSent: number;
+  unsubscribeRate: number;
+  recentUnsubscribes: Array<{
+    id: string;
+    email: string;
+    created_at: string;
+    campaign_lead_id: string;
+  }>;
+}
+
+export interface DeliverabilityDashboard {
+  sent: number;
+  hardBounces: number;
+  softBounces: number;
+  complaints: number;
+  bounceRate: number;
+  warmupPhase: string | null;
+  currentDailyLimit: number | null;
+}
+
+export interface WarmupDashboard {
+  enabled: boolean;
+  schedule: WarmupSchedule | null;
+  projection: Array<{ day: number; limit: number; phase: string }>;
+}

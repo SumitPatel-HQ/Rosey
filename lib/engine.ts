@@ -368,8 +368,14 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
     const check = String(node.data.check || "replied");
     let hasReply = false;
     let replyCheckError: string | null = null;
+    let usedCache = false;
 
-    if (context.threadId) {
+    // If the DB already confirmed a reply (set by sweepRepliedLeads earlier this
+    // sweep), trust it and skip the live Gmail round-trip.
+    if (context.replied) {
+      hasReply = true;
+      usedCache = true;
+    } else if (context.threadId) {
       try {
         const { hasThreadReceivedReply } = await import("@/lib/gmail");
         hasReply = await hasThreadReceivedReply(
@@ -386,7 +392,7 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
     const replied = check === "not_replied" ? !hasReply : hasReply;
     const branch = replied ? "yes" : "no";
 
-    if (hasReply && !context.replied) {
+    if (hasReply && !usedCache) {
       context.replied = true;
       await context.supabase
         .from("campaign_leads")
@@ -398,6 +404,7 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
       check,
       result: replied,
       branch,
+      used_cache: usedCache,
       thread_id: context.threadId || null,
       reply_check_error: replyCheckError,
       missing_thread_id: !context.threadId,
@@ -516,13 +523,18 @@ async function getEmailsSentInLastHour(
 async function sweepRepliedLeads(
   supabase: ReturnType<typeof getSupabase>
 ): Promise<void> {
-  // Find all waiting leads that have a thread but haven't been marked as replied yet
+  // Find all waiting leads that have a thread but haven't been marked as replied yet.
+  // Only check leads whose next_action_time is >2 min in the future — leads due
+  // imminently will have their reply checked live by the condition handler itself,
+  // so we avoid a redundant Gmail API call for each one every 10 s.
+  const twoMinutesFromNow = new Date(Date.now() + 2 * 60_000).toISOString();
   const { data: waitingLeads, error } = await supabase
     .from("campaign_leads")
     .select("id, thread_id, lead:leads(email)")
     .eq("status", "waiting")
     .eq("replied", false)
-    .not("thread_id", "is", null);
+    .not("thread_id", "is", null)
+    .gt("next_action_time", twoMinutesFromNow);
 
   if (error || !waitingLeads?.length) return;
 
