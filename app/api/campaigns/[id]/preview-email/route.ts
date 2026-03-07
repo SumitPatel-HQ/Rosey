@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { generateMessage } from "@/lib/openai";
-import type { Lead, EnrichedLeadData } from "@/types";
+import type { Lead, EnrichedLeadData, KnowledgeBaseItem } from "@/types";
 
 // GET /api/campaigns/[id]/preview-email — returns list of leads for the picker
 export async function GET(
@@ -54,13 +54,25 @@ export async function POST(
   // Get the campaign to find the product
   const { data: campaign, error: campaignError } = await supabase
     .from("campaigns")
-    .select("product_id")
+    .select("product_id, automation_context")
     .eq("id", id)
     .single();
 
   if (campaignError || !campaign) {
     return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
   }
+
+  // Fetch product for description + product-level KB
+  const { data: product } = await supabase
+    .from("products")
+    .select("description, knowledge_base")
+    .eq("id", campaign.product_id)
+    .single();
+
+  const productDescription = product?.description ?? undefined;
+  const productKbItems: KnowledgeBaseItem[] = (product?.knowledge_base as { items: KnowledgeBaseItem[] } | null)?.items ?? [];
+  const campaignKbItems: KnowledgeBaseItem[] = (campaign.automation_context as { items: KnowledgeBaseItem[] } | null)?.items ?? [];
+  const knowledgeBaseItems: KnowledgeBaseItem[] = [...productKbItems, ...campaignKbItems];
 
   // If a specific lead_id is given use it; otherwise prefer enriched, then first
   let lead: Lead | null = null;
@@ -92,10 +104,11 @@ export async function POST(
   const enrichedData = (lead.enriched_data as EnrichedLeadData | null) ?? null;
 
   try {
-    const { subject, body } = await generateMessage(prompt, lead, undefined, {
+    const { subject, body } = await generateMessage(prompt, lead, productDescription, {
       senderEmail: process.env.GMAIL_USER_EMAIL,
       isFollowUp: false,
       enrichedData,
+      knowledgeBase: knowledgeBaseItems,
     });
 
     return NextResponse.json({

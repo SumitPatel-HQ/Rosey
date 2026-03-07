@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { generateMessage } from "@/lib/openai";
 import { NextRequest, NextResponse } from "next/server";
+import type { KnowledgeBaseItem } from "@/types";
 
 export async function POST(
   request: NextRequest,
@@ -28,6 +29,9 @@ export async function POST(
 
   const lead = campaignLead.lead;
   const product = campaignLead.campaign?.product;
+  const productKbItems: KnowledgeBaseItem[] = (product?.knowledge_base as { items: KnowledgeBaseItem[] } | null)?.items ?? [];
+  const campaignKbItems: KnowledgeBaseItem[] = (campaignLead.campaign?.automation_context as { items: KnowledgeBaseItem[] } | null)?.items ?? [];
+  const knowledgeBaseItems: KnowledgeBaseItem[] = [...productKbItems, ...campaignKbItems];
 
   try {
     const { subject, body: emailBody } = await generateMessage(
@@ -37,6 +41,7 @@ export async function POST(
       {
         senderEmail: process.env.GMAIL_USER_EMAIL,
         isFollowUp: Boolean(campaignLead.thread_id),
+        knowledgeBase: knowledgeBaseItems,
       }
     );
 
