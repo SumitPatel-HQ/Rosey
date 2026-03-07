@@ -87,21 +87,14 @@ export async function addToSuppression(
 // ── CAN-SPAM footer ─────────────────────────────────────────────────────────
 
 /**
- * Build an HTML footer containing an unsubscribe link and the sender's
+ * Build a plain-text footer containing an unsubscribe link and the sender's
  * physical mailing address (CAN-SPAM requirement).
  */
 export function buildComplianceFooter(unsubscribeUrl: string): string {
   const physicalAddress =
     process.env.COMPANY_PHYSICAL_ADDRESS || "Address not configured";
 
-  return `
-<div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#6b7280;line-height:1.5;">
-  <p style="margin:0 0 8px 0;">
-    <a href="${unsubscribeUrl}" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>
-    from future emails.
-  </p>
-  <p style="margin:0;">${physicalAddress}</p>
-</div>`;
+  return `\n\n--\nTo unsubscribe from future emails: ${unsubscribeUrl}\n${physicalAddress}`;
 }
 
 /**

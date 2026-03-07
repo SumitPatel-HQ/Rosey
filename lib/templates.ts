@@ -70,7 +70,7 @@ export const campaignTemplates: CampaignTemplate[] = [
           position: { x: 300, y: 180 },
           data: {
             prompt:
-              "Write a short, personalized cold outreach email introducing our product. Keep it under 100 words, be conversational, and end with a soft CTA asking if they'd be open to a quick chat.",
+              "Write a short, personalized cold outreach email introducing our product. Plain text only, no HTML. Under 100 words, conversational tone as if writing to a colleague. End with a single soft question asking if they'd be open to a quick chat.",
             mode: "personalized",
           },
         },
@@ -112,7 +112,7 @@ export const campaignTemplates: CampaignTemplate[] = [
           position: { x: 350, y: 180 },
           data: {
             prompt:
-              "Write a personalized cold email introducing our product. Focus on a specific pain point for the recipient's industry. Under 120 words, end with a question.",
+              "Write a personalized cold email introducing our product. Plain text only, no HTML. Focus on one specific pain point relevant to the recipient's industry. Under 120 words, conversational and direct. End with a single open question.",
             mode: "personalized",
           },
         },
@@ -135,7 +135,7 @@ export const campaignTemplates: CampaignTemplate[] = [
           position: { x: 500, y: 620 },
           data: {
             prompt:
-              "Write a brief follow-up email referencing the previous email. Add new value — mention a case study or specific benefit. Keep it under 80 words. Friendly, not pushy.",
+              "Write a brief follow-up email referencing the previous outreach. Plain text only, no HTML. Add one new piece of value — a concrete benefit or a relevant example. Under 80 words, friendly and direct, not pushy.",
             mode: "personalized",
           },
         },
@@ -181,7 +181,7 @@ export const campaignTemplates: CampaignTemplate[] = [
           position: { x: 350, y: 180 },
           data: {
             prompt:
-              "Write a warm, personalized introduction email. Mention a specific pain point for the recipient's industry and how our product addresses it. Under 100 words.",
+              "Write a warm, personalized introduction email. Plain text only, no HTML. Mention one specific pain point for the recipient's industry and briefly explain how our product helps. Under 100 words, written like a person, not a marketing template.",
             mode: "personalized",
           },
         },
@@ -204,7 +204,7 @@ export const campaignTemplates: CampaignTemplate[] = [
           position: { x: 500, y: 620 },
           data: {
             prompt:
-              "Write a follow-up email adding social proof — mention a relevant customer or metric. Keep it under 80 words. Reference the previous email briefly.",
+              "Write a follow-up email adding social proof. Plain text only, no HTML. Mention a relevant customer win or metric in one line. Reference the previous email briefly. Under 80 words.",
             mode: "personalized",
           },
         },
@@ -227,7 +227,7 @@ export const campaignTemplates: CampaignTemplate[] = [
           position: { x: 650, y: 1060 },
           data: {
             prompt:
-              "Write a final breakup email. Be friendly but direct — let them know this is the last email. Offer one last clear CTA. Under 60 words.",
+              "Write a final breakup email. Plain text only, no HTML. Be friendly but direct — acknowledge this is the last reach out. Offer one simple, low-commitment CTA. Under 60 words.",
             mode: "personalized",
           },
         },
@@ -261,7 +261,7 @@ export const campaignTemplates: CampaignTemplate[] = [
           position: { x: 300, y: 200 },
           data: {
             prompt:
-              "Write a professional announcement email about our product launch / update. Include key benefits in bullet points. Use {{name}} and {{company}} placeholders. Under 150 words.",
+              "Write a professional announcement email about our product launch or update. Plain text only, no HTML, no bullet symbols. Use {{name}} and {{company}} placeholders. List 2-3 key benefits as short natural sentences separated by line breaks. Under 150 words.",
             mode: "same_for_all",
           },
         },

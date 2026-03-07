@@ -7,7 +7,7 @@ const openai = new OpenAI({
 });
 
 /**
- * Generate an email subject and HTML body from a single natural-language prompt.
+ * Generate an email subject and plain-text body from a single natural-language prompt.
  *
  * @param prompt  - The campaign author's intent, e.g. "Announce our strawberry promo with humour".
  * @param lead    - When provided the AI personifies the email for that specific lead.
@@ -71,8 +71,11 @@ export async function generateMessage(
           `${senderInstruction} ` +
           `${followUpInstruction} ` +
           "Based on the user's instructions, generate both a subject line and an email body. " +
-          'Respond with JSON: {"subject": "...", "body": "<html>...</html>"}. ' +
-          "The body must be valid HTML suitable for email. Keep it concise (3-5 sentences)." +
+          'Respond with JSON: {"subject": "...", "body": "..."}. ' +
+          "The body must be plain text only — absolutely no HTML tags, no markdown, no bullet symbols, no em-dashes used as bullets. " +
+          "Write the way a real person writes an email: short paragraphs separated by blank lines, natural conversational tone, no formal sign-off boilerplate. " +
+          "Keep it concise (3-5 sentences max unless the prompt specifies otherwise). " +
+          "End with a simple, direct call-to-action on its own line." +
           enrichmentInstruction,
       },
       {
