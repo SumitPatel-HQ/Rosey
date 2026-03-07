@@ -5,7 +5,7 @@ import { Trash2 } from "lucide-react";
 import { Handle, Position, NodeToolbar, useReactFlow } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 
-type Accent = "emerald" | "blue" | "amber" | "violet" | "rose";
+type Accent = "emerald" | "blue" | "amber" | "violet" | "rose" | "teal";
 
 const accentStyles: Record<
   Accent,
@@ -96,6 +96,21 @@ const accentStyles: Record<
     input:
       "border-slate-200 bg-white focus:border-red-300 focus:ring-red-200/40 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-red-700",
     badge: "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300",
+  },
+  teal: {
+    shell:
+      "border-teal-200/80 bg-white shadow-[0_12px_30px_-26px_rgba(15,23,42,0.2)] dark:border-teal-900/60 dark:[&]:bg-slate-950 dark:bg-gradient-to-br dark:from-slate-950 dark:to-teal-950/30",
+    selectedRing: "ring-2 ring-teal-500/70 ring-offset-2 dark:ring-offset-slate-950",
+    iconWrap: "bg-teal-100 ring-1 ring-teal-200 dark:bg-teal-950/40 dark:ring-teal-900/60",
+    icon: "text-teal-600 dark:text-teal-300",
+    eyebrow: "text-teal-700/80 dark:text-teal-300/80",
+    title: "text-slate-950 dark:text-slate-50",
+    handle: "!bg-teal-600 dark:!bg-teal-300",
+    softHandle:
+      "border-teal-200 bg-teal-100 text-teal-700 dark:border-teal-900/60 dark:bg-teal-950/40 dark:text-teal-300",
+    input:
+      "border-slate-200 bg-white focus:border-teal-300 focus:ring-teal-200/40 dark:border-slate-800 dark:bg-slate-950 dark:focus:border-teal-700",
+    badge: "bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300",
   },
 };
 
