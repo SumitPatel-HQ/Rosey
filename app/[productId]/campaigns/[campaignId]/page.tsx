@@ -35,7 +35,7 @@ import { AutomationPanel } from "@/components/campaign/automation-panel";
 import {
   Save, Play, StopCircle, Loader2, BarChart3, Users, Mail, Clock,
   GitBranch, Square, ChevronLeft, Workflow, Inbox, Gauge, RefreshCw,
-  MessageSquareReply, BrainCircuit, Settings,
+  MessageSquareReply, BrainCircuit, Settings, MessageCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -49,6 +49,7 @@ type View = "workflow" | "leads" | "analytics" | "automation" | "inbox" | "setti
 const nodeItems = [
   { type: "start", label: "Start", icon: Play, color: "text-green-600 bg-green-100" },
   { type: "send_email", label: "Send Email", icon: Mail, color: "text-blue-600 bg-blue-100" },
+  { type: "send_whatsapp", label: "Send WhatsApp", icon: MessageCircle, color: "text-teal-600 bg-teal-100" },
   { type: "wait", label: "Wait / Delay", icon: Clock, color: "text-amber-600 bg-amber-100" },
   { type: "condition", label: "If / Else", icon: GitBranch, color: "text-purple-600 bg-purple-100" },
   { type: "auto_reply", label: "Auto Reply", icon: MessageSquareReply, color: "text-teal-600 bg-teal-100" },
