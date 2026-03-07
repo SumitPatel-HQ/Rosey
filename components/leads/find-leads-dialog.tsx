@@ -115,7 +115,11 @@ export function FindLeadsDialog({ productId, onAdded }: FindLeadsDialogProps) {
             body: JSON.stringify({
               product_id: productId,
               name: lead.name,
-              email: lead.emailDraft,
+              // Blank email → unique placeholder so the UNIQUE(product_id, email)
+              // constraint doesn't collide when multiple leads lack an email.
+              email: lead.emailDraft.trim()
+                ? lead.emailDraft.trim()
+                : `noemail-${crypto.randomUUID()}@placeholder.rosey`,
               company: lead.company,
               industry: lead.industry,
               custom_fields: {
@@ -287,7 +291,7 @@ export function FindLeadsDialog({ productId, onAdded }: FindLeadsDialogProps) {
                         </div>
                         <div onClick={(e) => e.stopPropagation()}>
                           <Input
-                            placeholder="Email address (optional)"
+                            placeholder="Email address (will be set as placeholder if left blank)"
                             className="h-7 text-xs mt-1"
                             value={lead.emailDraft}
                             onChange={(e) => updateEmail(i, e.target.value)}

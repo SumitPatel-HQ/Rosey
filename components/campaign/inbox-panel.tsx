@@ -15,6 +15,7 @@ import {
   Mail,
   MessageSquare,
   ChevronRight,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -481,6 +482,23 @@ export function InboxPanel({ campaignId }: InboxPanelProps) {
                 >
                   {selectedLead.status}
                 </Badge>
+                {selectedLead.thread_id && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    asChild
+                    title="Open in Gmail"
+                  >
+                    <a
+                      href={`https://mail.google.com/mail/u/0/#all/${selectedLead.thread_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
