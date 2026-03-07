@@ -1,8 +1,14 @@
+import { config } from "dotenv";
+import { resolve } from "path";
+
+// Load .env.local so WORKER_SECRET and NEXT_PUBLIC_APP_URL are available
+config({ path: resolve(process.cwd(), ".env.local") });
+
 const INTERVAL = 10_000;
 const APP_URL =
   process.env.ENGINE_BASE_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  "http://localhost:3000";
+  "http://localhost:3001";
 const WORKER_SECRET = process.env.WORKER_SECRET || "";
 
 async function tick() {

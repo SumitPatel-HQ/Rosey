@@ -338,7 +338,8 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
         const { hasThreadReceivedReply } = await import("@/lib/gmail");
         hasReply = await hasThreadReceivedReply(
           context.threadId,
-          process.env.GMAIL_USER_EMAIL!
+          process.env.GMAIL_USER_EMAIL!,
+          context.lead.email
         );
       } catch (error) {
         hasReply = false;
@@ -482,7 +483,7 @@ async function sweepRepliedLeads(
   // Find all waiting leads that have a thread but haven't been marked as replied yet
   const { data: waitingLeads, error } = await supabase
     .from("campaign_leads")
-    .select("id, thread_id")
+    .select("id, thread_id, lead:leads(email)")
     .eq("status", "waiting")
     .eq("replied", false)
     .not("thread_id", "is", null);
@@ -495,7 +496,11 @@ async function sweepRepliedLeads(
   for (const cl of waitingLeads) {
     if (!cl.thread_id) continue;
     try {
-      const hasReply = await hasThreadReceivedReply(cl.thread_id, senderEmail);
+      const hasReply = await hasThreadReceivedReply(
+        cl.thread_id,
+        senderEmail,
+        cl.lead?.email
+      );
       if (hasReply) {
         // Mark as replied and accelerate — set next_action_time to now so the
         // engine picks it up in the current (or next) sweep instead of waiting
