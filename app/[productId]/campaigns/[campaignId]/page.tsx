@@ -31,16 +31,18 @@ import { Separator } from "@/components/ui/separator";
 import { AnalyticsPanel } from "@/components/campaign/analytics-panel";
 import { LeadsPanel } from "@/components/campaign/leads-panel";
 import { InboxPanel } from "@/components/campaign/inbox-panel";
+import { AutomationPanel } from "@/components/campaign/automation-panel";
 import {
   Save, Play, StopCircle, Loader2, BarChart3, Users, Mail, Clock,
   GitBranch, Square, ChevronLeft, Workflow, Inbox, Gauge, RefreshCw,
+  MessageSquareReply, BrainCircuit,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@/types";
 
-type View = "workflow" | "leads" | "analytics" | "inbox";
+type View = "workflow" | "leads" | "analytics" | "automation" | "inbox";
 
 // ─── Node palette items & sidebar nav ────────────────────────────────────────
 
@@ -49,6 +51,7 @@ const nodeItems = [
   { type: "send_email", label: "Send Email", icon: Mail, color: "text-blue-600 bg-blue-100" },
   { type: "wait", label: "Wait / Delay", icon: Clock, color: "text-amber-600 bg-amber-100" },
   { type: "condition", label: "If / Else", icon: GitBranch, color: "text-purple-600 bg-purple-100" },
+  { type: "auto_reply", label: "Auto Reply", icon: MessageSquareReply, color: "text-teal-600 bg-teal-100" },
   { type: "end", label: "End", icon: Square, color: "text-red-600 bg-red-100" },
 ];
 
@@ -56,6 +59,7 @@ const sidebarNav: { view: View; label: string; icon: React.ElementType }[] = [
   { view: "workflow", label: "Workflow Editor", icon: Workflow },
   { view: "leads", label: "Leads", icon: Users },
   { view: "analytics", label: "Analytics", icon: BarChart3 },
+  { view: "automation", label: "Automation", icon: BrainCircuit },
   { view: "inbox", label: "Inbox", icon: Inbox },
 ];
 
@@ -443,6 +447,9 @@ function BuilderInner() {
           )}
           {view === "analytics" && (
             <AnalyticsPanel key={refreshKey} campaignId={campaignId} />
+          )}
+          {view === "automation" && (
+            <AutomationPanel campaignId={campaignId} productId={productId} />
           )}
           {view === "inbox" && (
             <InboxPanel key={refreshKey} campaignId={campaignId} productId={productId} />
