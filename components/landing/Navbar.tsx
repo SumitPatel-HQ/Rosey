@@ -94,30 +94,30 @@ export default function Navbar() {
             ))}
          </div>
 
-         {/* CTA Button */}
-         <a
-            href="#contact"
-            style={{
-               padding: "0.5rem 1.25rem",
-               borderRadius: "100px",
-               border: "1px solid var(--accent-primary)",
-               color: "var(--accent-primary)",
-               fontSize: "0.875rem",
-               fontWeight: 600,
-               fontFamily: "var(--font-body)",
-               transition: "all 200ms ease",
-            }}
-            onMouseEnter={(e) => {
-               e.currentTarget.style.background = "var(--accent-primary)";
-               e.currentTarget.style.color = "var(--text-primary)";
-            }}
-            onMouseLeave={(e) => {
-               e.currentTarget.style.background = "transparent";
-               e.currentTarget.style.color = "var(--accent-primary)";
-            }}
-         >
-            Get Early Access
-         </a>
+          {/* CTA Button */}
+          <a
+             href="/dashboard"
+             style={{
+                padding: "0.5rem 1.25rem",
+                borderRadius: "100px",
+                border: "1px solid var(--accent-primary)",
+                color: "var(--accent-primary)",
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                fontFamily: "var(--font-body)",
+                transition: "all 200ms ease",
+             }}
+             onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--accent-primary)";
+                e.currentTarget.style.color = "var(--text-primary)";
+             }}
+             onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "var(--accent-primary)";
+             }}
+          >
+             Dashboard
+          </a>
       </nav>
    );
 }

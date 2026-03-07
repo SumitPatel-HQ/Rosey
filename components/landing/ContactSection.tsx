@@ -98,17 +98,17 @@ export default function ContactSection() {
             that&apos;s safe, compliant, and built around the human conversation.
          </p>
 
-         {/* Email Form */}
-         <form
-            onSubmit={(e) => e.preventDefault()}
-            style={{
-               display: "flex",
-               gap: "0.75rem",
-               width: "100%",
-               maxWidth: "480px",
-               position: "relative",
-            }}
-         >
+          {/* Email Form */}
+          <form
+             action="/dashboard"
+             style={{
+                display: "flex",
+                gap: "0.75rem",
+                width: "100%",
+                maxWidth: "480px",
+                position: "relative",
+             }}
+          >
             <input
                type="email"
                placeholder="Enter your work email"
@@ -134,24 +134,24 @@ export default function ContactSection() {
                   e.currentTarget.style.boxShadow = "none";
                }}
             />
-            <button
-               type="submit"
-               style={{
-                  padding: "0.85rem 1.5rem",
-                  background: "var(--accent-primary)",
-                  color: "var(--text-primary)",
-                  borderRadius: "12px",
-                  fontSize: "0.95rem",
-                  fontWeight: 600,
-                  fontFamily: "var(--font-body)",
-                  whiteSpace: "nowrap",
-                  transition: "opacity 200ms ease",
-               }}
-               onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-               onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-            >
-               Get Early Access →
-            </button>
+             <button
+                type="submit"
+                style={{
+                   padding: "0.85rem 1.5rem",
+                   background: "var(--accent-primary)",
+                   color: "var(--text-primary)",
+                   borderRadius: "12px",
+                   fontSize: "0.95rem",
+                   fontWeight: 600,
+                   fontFamily: "var(--font-body)",
+                   whiteSpace: "nowrap",
+                   transition: "opacity 200ms ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+             >
+                Go to Dashboard →
+             </button>
          </form>
 
          {/* Bottom note */}
