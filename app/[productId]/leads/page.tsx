@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { LeadsTable } from "@/components/leads/leads-table";
 import { UploadDialog } from "@/components/leads/upload-dialog";
+import { FindLeadsDialog } from "@/components/leads/find-leads-dialog";
 import type { Lead } from "@/types";
 
 export default function LeadsPage() {
@@ -36,7 +37,10 @@ export default function LeadsPage() {
             {leads.length} lead{leads.length !== 1 ? "s" : ""} in this product
           </p>
         </div>
-        <UploadDialog productId={productId} onUploaded={fetchLeads} />
+        <div className="flex items-center gap-2">
+          <FindLeadsDialog productId={productId} onAdded={fetchLeads} />
+          <UploadDialog productId={productId} onUploaded={fetchLeads} />
+        </div>
       </div>
 
       {loading ? (

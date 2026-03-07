@@ -49,6 +49,15 @@ export interface EnrichedLeadData {
   scraped_at: string;
 }
 
+export interface CandidateLead {
+  name: string;
+  email: string;
+  company: string | null;
+  industry: string | null;
+  job_title: string | null;
+  source_url: string | null;
+}
+
 export interface Lead {
   id: string;
   product_id: string;

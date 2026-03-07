@@ -31,10 +31,11 @@ export async function POST(request: NextRequest) {
     .insert({
       product_id: body.product_id,
       name: body.name,
-      email: body.email,
+      email: body.email || "",
       company: body.company || null,
       industry: body.industry || null,
       tags: body.tags || [],
+      ...(body.custom_fields ? { custom_fields: body.custom_fields } : {}),
     })
     .select()
     .single();
