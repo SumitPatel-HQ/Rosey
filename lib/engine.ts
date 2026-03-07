@@ -355,6 +355,97 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
     context.emailCounter.count++;
   },
 
+  send_whatsapp: async (node, context) => {
+    const phone = (context.lead as Lead & { phone?: string | null }).phone;
+    if (!phone) {
+      await logAction(context.supabase, context.campaignLead.id, "send_whatsapp", "skipped", {
+        reason: "no_phone",
+        lead_id: context.lead.id,
+      });
+      return {};
+    }
+
+    const prompt =
+      typeof node.data.prompt === "string" && node.data.prompt.trim()
+        ? node.data.prompt
+        : "Write a professional WhatsApp follow-up message.";
+
+    const mode =
+      typeof node.data.mode === "string" && node.data.mode === "same_for_all"
+        ? "same_for_all"
+        : "personalized";
+
+    const { generateWhatsAppMessage } = await import("@/lib/openai");
+
+    const interpolate = (text: string) =>
+      text
+        .replace(/\{\{name\}\}/g, context.lead.name)
+        .replace(/\{\{company\}\}/g, context.lead.company || "your company")
+        .replace(/\{\{industry\}\}/g, context.lead.industry || "your industry");
+
+    let body: string;
+
+    if (mode === "same_for_all") {
+      const cachedBody = typeof node.data.cached_body === "string" ? node.data.cached_body : null;
+      if (cachedBody) {
+        body = interpolate(cachedBody);
+      } else {
+        const result = await generateWhatsAppMessage(prompt, null, context.productDescription);
+        node.data.cached_body = result.body;
+        const updatedNodes = context.campaign.workflow_json.nodes.map((n) =>
+          n.id === node.id ? { ...n, data: { ...n.data, cached_body: result.body } } : n
+        );
+        const updatedWorkflow = { ...context.campaign.workflow_json, nodes: updatedNodes };
+        await context.supabase
+          .from("campaigns")
+          .update({ workflow_json: updatedWorkflow })
+          .eq("id", context.campaign.id);
+        context.campaign.workflow_json = updatedWorkflow;
+        body = interpolate(result.body);
+      }
+    } else {
+      const result = await generateWhatsAppMessage(prompt, context.lead, context.productDescription);
+      body = result.body;
+    }
+
+    // Send via the worker's internal WhatsApp gateway
+    const gatewayUrl = process.env.WHATSAPP_GATEWAY_URL ?? "http://127.0.0.1:3002";
+    const sendRes = await fetch(`${gatewayUrl}/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ to: phone, body }),
+    });
+
+    if (!sendRes.ok) {
+      const errText = await sendRes.text().catch(() => "unknown");
+      throw new Error(`WhatsApp gateway send failed: ${sendRes.status} ${errText}`);
+    }
+
+    const sent = (await sendRes.json()) as { jid: string; ts: number };
+
+    // Persist WhatsApp state to campaign_leads
+    await context.supabase
+      .from("campaign_leads")
+      .update({
+        whatsapp_jid: sent.jid,
+        whatsapp_last_msg_ts: sent.ts,
+        followup_count: (context.campaignLead.followup_count || 0) + 1,
+      })
+      .eq("id", context.campaignLead.id);
+
+    context.campaignLead.followup_count = (context.campaignLead.followup_count || 0) + 1;
+
+    await logAction(
+      context.supabase,
+      context.campaignLead.id,
+      "send_whatsapp",
+      "success",
+      { jid: sent.jid, ts: sent.ts, mode }
+    );
+
+    context.emailCounter.count++; // share rate-limit counter
+  },
+
   wait: async (node, context) => {
     const delayMs = getWaitDelayMs(node);
 
@@ -387,6 +478,27 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
           process.env.GMAIL_USER_EMAIL!,
           context.lead.email
         );
+      } catch (error) {
+        hasReply = false;
+        replyCheckError = error instanceof Error ? error.message : String(error);
+      }
+    } else if ((context.campaignLead as CampaignLead & { whatsapp_jid?: string | null }).whatsapp_jid) {
+      // WhatsApp reply check via the worker gateway
+      try {
+        const cl = context.campaignLead as CampaignLead & {
+          whatsapp_jid?: string | null;
+          whatsapp_last_msg_ts?: number | null;
+        };
+        const jid = cl.whatsapp_jid!;
+        const since = Number(cl.whatsapp_last_msg_ts ?? 0);
+        const gatewayUrl = process.env.WHATSAPP_GATEWAY_URL ?? "http://127.0.0.1:3002";
+        const checkRes = await fetch(
+          `${gatewayUrl}/check-reply?jid=${encodeURIComponent(jid)}&since=${since}`
+        );
+        if (checkRes.ok) {
+          const { replied: waReplied } = (await checkRes.json()) as { replied: boolean };
+          hasReply = waReplied;
+        }
       } catch (error) {
         hasReply = false;
         replyCheckError = error instanceof Error ? error.message : String(error);
