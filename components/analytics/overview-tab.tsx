@@ -167,9 +167,10 @@ function PipelineFunnel({
               <PieChart>
                 <Tooltip
                   contentStyle={CHART_TOOLTIP_STYLE}
-                  formatter={(value: number, _name: string, ctx) => {
-                    const payload = ctx?.payload as { pct?: number } | undefined;
-                    return [`${value} leads (${payload?.pct ?? 0}%)`, ctx?.name ?? "Stage"];
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  formatter={(value: any, _name: any, item: any) => {
+                    const payload = item?.payload as { pct?: number } | undefined;
+                    return [`${value} leads (${payload?.pct ?? 0}%)`, item?.name ?? "Stage"];
                   }}
                 />
                 <Pie
