@@ -35,7 +35,16 @@ export async function POST(
 
   // Auto-assign all product leads that aren't already in this campaign
   const startNode = nodes.find((n: { type: string }) => n.type === "start");
-  const startNodeId = startNode?.id || "1";
+  const startNodeId = startNode?.id;
+  if (!startNodeId) {
+    return NextResponse.json(
+      { error: "Workflow start node has no ID — please re-save the workflow and try again." },
+      { status: 400 }
+    );
+  }
+
+  // Collect all valid node IDs so we can heal stale campaign_leads rows
+  const validNodeIds = new Set<string>(nodes.map((n: { id: string }) => n.id).filter(Boolean));
 
   const { data: allLeads } = await supabase
     .from("leads")
@@ -45,8 +54,20 @@ export async function POST(
   if (allLeads?.length) {
     const { data: existingAssignments } = await supabase
       .from("campaign_leads")
-      .select("lead_id")
+      .select("lead_id, id, current_node_id, status")
       .eq("campaign_id", id);
+
+    // Fix any existing rows whose current_node_id no longer exists in the workflow
+    const staleRows = (existingAssignments || []).filter(
+      (a) => a.current_node_id && !validNodeIds.has(a.current_node_id)
+    );
+    if (staleRows.length > 0) {
+      const staleIds = staleRows.map((r) => r.id);
+      await supabase
+        .from("campaign_leads")
+        .update({ current_node_id: startNodeId, status: "queued", next_action_time: new Date().toISOString() })
+        .in("id", staleIds);
+    }
 
     const alreadyAssigned = new Set(
       (existingAssignments || []).map((a) => a.lead_id)

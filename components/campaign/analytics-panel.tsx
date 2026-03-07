@@ -31,7 +31,7 @@ export function AnalyticsPanel({ campaignId }: { campaignId: string }) {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [fetchAnalytics]);
+  }, [campaignId]);
 
   if (loading || !analytics) {
     return (
