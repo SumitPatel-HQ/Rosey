@@ -163,8 +163,8 @@ export function CommandCenter({
                           ? "Unsub Rate"
                           : "Velocity"}
                 </span>
-                <span className="font-mono text-[11px]">
-                  {factor.score}/{factor.max}
+                <span className="text-[11px] text-muted-foreground" title={`${factor.score}/${factor.max} pts`}>
+                  {factor.detail}
                 </span>
               </div>
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
