@@ -24,7 +24,14 @@ export function CampaignSelector() {
     if (!productId) return;
     fetch(`/api/campaigns?productId=${productId}`)
       .then((r) => r.json())
-      .then(setCampaigns)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCampaigns(data);
+        } else {
+          console.error("Failed to fetch campaigns:", data);
+          setCampaigns([]);
+        }
+      })
       .catch(console.error);
   }, [productId]);
 
