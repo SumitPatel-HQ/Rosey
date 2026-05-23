@@ -178,10 +178,15 @@ function WhatsAppSettings() {
   }, []);
 
   useEffect(() => {
-    refresh();
+    const loadData = async () => {
+      await refresh();
+    };
+    loadData();
     // Poll every 3 s so the UI updates automatically after scanning
-    const id = setInterval(refresh, 3_000);
-    return () => clearInterval(id);
+    const id = setInterval(() => { refresh().catch(console.error) }, 3_000);
+    return () => { 
+      clearInterval(id); 
+    };
   }, [refresh]);
 
   async function handleDisconnect() {

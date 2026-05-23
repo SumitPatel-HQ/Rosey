@@ -39,7 +39,7 @@ async function ensureCampaignLabel(
   const labelName = getCampaignLabelName(productName, campaign.name);
   const labelId = await getOrCreateLabel(labelName);
 
-  if (campaign.gmail_label_id !== labelId) {
+  if (labelId && campaign.gmail_label_id !== labelId) {
     await supabase
       .from("campaigns")
       .update({ gmail_label_id: labelId })
@@ -47,7 +47,7 @@ async function ensureCampaignLabel(
     campaign.gmail_label_id = labelId;
   }
 
-  return labelId;
+  return labelId || null;
 }
 
 async function claimCampaignLead(
@@ -291,6 +291,11 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
       });
       subject = threadSubject || message.subject;
       htmlBody = message.body;
+    }
+
+    // Convert plain text body to HTML
+    if (!htmlBody.includes('<br>') && !htmlBody.includes('<p>')) {
+      htmlBody = htmlBody.replace(/\n/g, "<br>");
     }
 
     // ── Compliance footer + unsubscribe URL ──────────────────────────────
@@ -872,9 +877,9 @@ export async function processActiveCampaigns(): Promise<{
     try {
       labelId = await ensureCampaignLabel(supabase, campaign, productName);
     } catch (error) {
-      console.error(`Failed to ensure label for campaign ${campaign.id}:`, error);
-      errors++;
-      continue;
+      // Log the error but don't fail the campaign - label is optional
+      console.warn(`Failed to ensure label for campaign ${campaign.id}:`, error);
+      // Continue without label - emails will still be sent
     }
 
     // ── Rate limiting (with warm-up integration) ──────────────────────────

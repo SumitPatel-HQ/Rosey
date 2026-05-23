@@ -40,7 +40,7 @@ export async function sendEmail(params: {
     `To: ${to}`,
     `Subject: ${utf8Subject}`,
     "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=utf-8",
+    "Content-Type: text/html; charset=utf-8",
     ...(replyToMessageId
       ? [
           `In-Reply-To: ${replyToMessageId}`,
@@ -72,16 +72,27 @@ export async function sendEmail(params: {
   });
 
   const sentMessageId = res.data.id!;
-  const metadata = await gmail.users.messages.get({
-    userId: "me",
-    id: sentMessageId,
-    format: "metadata",
-    metadataHeaders: ["Message-ID"],
-  });
-  const messageIdHeader =
-    metadata.data.payload?.headers?.find(
-      (header) => header.name?.toLowerCase() === "message-id"
-    )?.value || null;
+  let messageIdHeader: string | null = null;
+  
+  try {
+    const metadata = await gmail.users.messages.get({
+      userId: "me",
+      id: sentMessageId,
+      format: "metadata",
+      metadataHeaders: ["Message-ID"],
+    });
+    messageIdHeader =
+      metadata.data.payload?.headers?.find(
+        (header) => header.name?.toLowerCase() === "message-id"
+      )?.value || null;
+  } catch (err: unknown) {
+    const gErr = err as { code?: number; status?: number };
+    if (gErr.code === 403 || gErr.status === 403) {
+      console.warn("Insufficient scope to read message metadata. Bypassing RFC Message-ID fetch.");
+    } else {
+      console.error("Error fetching message metadata:", err);
+    }
+  }
 
   return {
     messageId: sentMessageId,
@@ -90,22 +101,31 @@ export async function sendEmail(params: {
   };
 }
 
-export async function getOrCreateLabel(name: string): Promise<string> {
+export async function getOrCreateLabel(name: string): Promise<string | null> {
   const gmail = getGmailClient();
 
-  const res = await gmail.users.labels.list({ userId: "me" });
-  const existing = res.data.labels?.find((l) => l.name === name);
-  if (existing) return existing.id!;
+  try {
+    const res = await gmail.users.labels.list({ userId: "me" });
+    const existing = res.data.labels?.find((l) => l.name === name);
+    if (existing) return existing.id!;
 
-  const created = await gmail.users.labels.create({
-    userId: "me",
-    requestBody: {
-      name,
-      messageListVisibility: "show",
-      labelListVisibility: "labelShow",
-    },
-  });
-  return created.data.id!;
+    const created = await gmail.users.labels.create({
+      userId: "me",
+      requestBody: {
+        name,
+        messageListVisibility: "show",
+        labelListVisibility: "labelShow",
+      },
+    });
+    return created.data.id!;
+  } catch (err: unknown) {
+    const gErr = err as { code?: number; status?: number };
+    if (gErr.code === 403 || gErr.status === 403) {
+      console.warn("Insufficient scope to manage labels. Bypassing label creation.");
+      return null;
+    }
+    throw err;
+  }
 }
 
 export async function applyLabelToThread(
@@ -113,13 +133,22 @@ export async function applyLabelToThread(
   labelId: string
 ): Promise<void> {
   const gmail = getGmailClient();
-  await gmail.users.threads.modify({
-    userId: "me",
-    id: threadId,
-    requestBody: {
-      addLabelIds: [labelId],
-    },
-  });
+  try {
+    await gmail.users.threads.modify({
+      userId: "me",
+      id: threadId,
+      requestBody: {
+        addLabelIds: [labelId],
+      },
+    });
+  } catch (err: unknown) {
+    const gErr = err as { code?: number; status?: number };
+    if (gErr.code === 403 || gErr.status === 403) {
+      console.warn("Insufficient scope to modify thread labels. Bypassing.");
+      return;
+    }
+    throw err;
+  }
 }
 
 export async function applyLabelToMessage(
@@ -127,13 +156,22 @@ export async function applyLabelToMessage(
   labelId: string
 ): Promise<void> {
   const gmail = getGmailClient();
-  await gmail.users.messages.modify({
-    userId: "me",
-    id: messageId,
-    requestBody: {
-      addLabelIds: [labelId],
-    },
-  });
+  try {
+    await gmail.users.messages.modify({
+      userId: "me",
+      id: messageId,
+      requestBody: {
+        addLabelIds: [labelId],
+      },
+    });
+  } catch (err: unknown) {
+    const gErr = err as { code?: number; status?: number };
+    if (gErr.code === 403 || gErr.status === 403) {
+      console.warn("Insufficient scope to modify message labels. Bypassing.");
+      return;
+    }
+    throw err;
+  }
 }
 
 export async function hasThreadReceivedReply(

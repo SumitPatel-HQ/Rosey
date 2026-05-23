@@ -10,7 +10,10 @@ export async function POST(
 
   const body = await request.json();
   const subject: string = body.subject?.trim();
-  const htmlBody: string = body.htmlBody?.trim();
+  let htmlBody: string = body.htmlBody?.trim() || "";
+  if (!htmlBody.includes('<br>') && !htmlBody.includes('<p>')) {
+    htmlBody = htmlBody.replace(/\n/g, "<br>");
+  }
 
   if (!subject || !htmlBody) {
     return NextResponse.json(

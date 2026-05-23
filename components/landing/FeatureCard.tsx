@@ -8,15 +8,15 @@ interface Feature {
    tag: string;
    accent: string;
    visual:
-      | "campaign-brain"
-      | "persona"
-      | "timing"
-      | "ghost"
-      | "handoff"
-      | "committee"
-      | "objection"
-      | "roi"
-      | "link-engagement";
+   | "campaign-brain"
+   | "persona"
+   | "timing"
+   | "ghost"
+   | "handoff"
+   | "committee"
+   | "objection"
+   | "roi"
+   | "link-engagement";
 }
 
 interface FeatureCardProps {
@@ -37,61 +37,31 @@ export default function FeatureCard({ feature, side }: FeatureCardProps) {
 
 function FeatureText({ feature }: { feature: Feature }) {
    return (
-      <div
-         style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem",
-            padding: "3rem 2.5rem",
-         }}
-      >
+      <div className="flex flex-col gap-5 px-10 py-12">
          <span
-            style={{
-               fontFamily: "var(--font-body)",
-               fontSize: "0.8rem",
-               color: "var(--text-tertiary)",
-               fontWeight: 500,
-               letterSpacing: "0.1em",
-            }}
+            className="text-[0.8rem] text-[var(--text-tertiary)] font-medium tracking-[0.1em] font-[family-name:var(--font-body)]"
+            style={{ fontFamily: "var(--font-body)" }}
          >
             {feature.number}
          </span>
 
          <h2
-            style={{
-               fontFamily: "var(--font-heading)",
-               fontSize: "clamp(2rem, 4vw, 3rem)",
-               fontWeight: 700,
-               letterSpacing: "-0.03em",
-               color: "var(--text-primary)",
-               lineHeight: 1.1,
-            }}
+            className="text-[clamp(2rem,4vw,3rem)] font-bold tracking-[-0.03em] text-[var(--text-primary)] leading-[1.1] font-[family-name:var(--font-heading)]"
+            style={{ fontFamily: "var(--font-heading)" }}
          >
             {feature.title}
          </h2>
 
          <p
-            style={{
-               fontSize: "1.15rem",
-               color: feature.accent,
-               fontStyle: "italic",
-               lineHeight: 1.4,
-            }}
+            className="text-[1.15rem] italic leading-[1.4]"
+            style={{ color: feature.accent }}
          >
             {feature.subtitle}
          </p>
 
-         <p
-            style={{
-               fontSize: "1rem",
-               color: "var(--text-secondary)",
-               lineHeight: 1.7,
-               maxWidth: "380px",
-            }}
-         >
+         <p className="text-base text-[var(--text-secondary)] leading-[1.7] max-w-[380px]">
             {feature.body}
          </p>
-
       </div>
    );
 }
@@ -102,27 +72,8 @@ function FeatureText({ feature }: { feature: Feature }) {
 
 function FeatureVisual({ feature }: { feature: Feature }) {
    return (
-      <div
-         style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-         }}
-      >
-         <div
-            style={{
-               background: "var(--bg-card)",
-               border: "1px solid var(--bg-border)",
-               borderRadius: "24px",
-               padding: "2rem",
-               width: "100%",
-               maxWidth: "520px",
-               minHeight: "360px",
-               display: "flex",
-               flexDirection: "column",
-               justifyContent: "center",
-            }}
-         >
+      <div className="flex justify-center items-center">
+         <div className="bg-[var(--bg-card)] border border-[var(--bg-border)] rounded-[24px] p-8 w-full max-w-[520px] min-h-[360px] flex flex-col justify-center">
             {feature.visual === "campaign-brain" && <CampaignBrainVisual />}
             {feature.visual === "persona" && <PersonaVisual />}
             {feature.visual === "timing" && <TimingVisual />}
@@ -143,47 +94,25 @@ function CampaignBrainVisual() {
 
    return (
       <div
+         className="rounded-2xl py-8 px-6 relative"
          style={{
-            backgroundImage:
-               "radial-gradient(var(--bg-border) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(var(--bg-border) 1px, transparent 1px)",
             backgroundSize: "28px 28px",
-            borderRadius: "16px",
-            padding: "2rem 1.5rem",
-            position: "relative",
          }}
       >
-         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
+         <div className="flex items-center gap-2 flex-wrap justify-center">
             {nodes.map((node, i) => (
-               <div key={node} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <div
-                     style={{
-                        padding: "0.5rem 1rem",
-                        borderRadius: "8px",
-                        border: "1px solid var(--accent-primary)",
-                        background: "var(--bg-elevated)",
-                        color: "var(--text-primary)",
-                        fontSize: "0.75rem",
-                        fontWeight: 500,
-                        whiteSpace: "nowrap",
-                     }}
-                  >
+               <div key={node} className="flex items-center gap-2">
+                  <div className="py-2 px-4 rounded-lg border border-[var(--accent-primary)] bg-[var(--bg-elevated)] text-[var(--text-primary)] text-xs font-medium whitespace-nowrap">
                      {node}
                   </div>
                   {i < nodes.length - 1 && (
-                     <span style={{ color: "var(--accent-primary)", fontSize: "1rem" }}>→</span>
+                     <span className="text-[var(--accent-primary)] text-base">→</span>
                   )}
                </div>
             ))}
          </div>
-         <p
-            style={{
-               textAlign: "center",
-               marginTop: "1.5rem",
-               fontSize: "0.75rem",
-               color: "var(--text-tertiary)",
-               fontStyle: "italic",
-            }}
-         >
+         <p className="text-center mt-6 text-xs text-[var(--text-tertiary)] italic">
             &quot;Warm up 50 SaaS CTOs over 5 days&quot;
          </p>
       </div>
@@ -201,52 +130,27 @@ function PersonaVisual() {
 
    return (
       <div>
-         <div
-            style={{
-               display: "grid",
-               gridTemplateColumns: "1fr 1fr",
-               gap: "0.75rem",
-               marginBottom: "1rem",
-            }}
-         >
+         <div className="grid grid-cols-2 gap-3 mb-4">
             {quads.map((q) => (
                <div
                   key={q.label}
-                  style={{
-                     padding: "1.25rem",
-                     borderRadius: "12px",
-                     background: "var(--bg-elevated)",
-                     textAlign: "center",
-                  }}
+                  className="p-5 rounded-xl bg-[var(--bg-elevated)] text-center"
                >
                   <div
-                     style={{
-                        fontSize: "1.5rem",
-                        fontWeight: 700,
-                        fontFamily: "var(--font-heading)",
-                        color: q.color,
-                        marginBottom: "0.4rem",
-                     }}
+                     className="text-2xl font-bold mb-1 font-[family-name:var(--font-heading)]"
+                     style={{ color: q.color, fontFamily: "var(--font-heading)" }}
                   >
                      {q.label}
                   </div>
-                  <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", lineHeight: 1.4 }}>
+                  <div className="text-[0.65rem] text-[var(--text-secondary)] leading-[1.4]">
                      {q.desc}
                   </div>
                </div>
             ))}
          </div>
          {/* Lead tag */}
-         <div
-            style={{
-               padding: "0.6rem 1rem",
-               borderRadius: "8px",
-               background: "var(--bg-elevated)",
-               display: "flex",
-               alignItems: "center",
-            }}
-         >
-            <span style={{ fontSize: "0.8rem", color: "var(--text-primary)" }}>
+         <div className="py-[0.6rem] px-4 rounded-lg bg-[var(--bg-elevated)] flex items-center">
+            <span className="text-[0.8rem] text-[var(--text-primary)]">
                Priya S. — D-type detected
             </span>
          </div>
@@ -261,35 +165,18 @@ function TimingVisual() {
 
    return (
       <div>
-         <div
-            style={{
-               display: "flex",
-               alignItems: "flex-end",
-               justifyContent: "center",
-               gap: "0.6rem",
-               height: "140px",
-               marginBottom: "1rem",
-               position: "relative",
-            }}
-         >
+         <div className="flex items-end justify-center gap-[0.6rem] h-[140px] mb-4 relative">
             {days.map((day, i) => (
-               <div key={day} style={{ textAlign: "center", flex: 1 }}>
+               <div key={day} className="text-center flex-1">
                   <div
+                     className="min-h-[12px] rounded-t-[6px] rounded-b-[2px] transition-colors duration-300 ease-in-out mb-2"
                      style={{
                         height: `${heights[i]}%`,
-                        minHeight: "12px",
-                        borderRadius: "6px 6px 2px 2px",
                         background: i === 3 ? "var(--accent-primary)" : "var(--bg-elevated)",
-                        transition: "background 300ms ease",
-                        marginBottom: "0.5rem",
                      }}
                   />
                   <span
-                     style={{
-                        fontSize: "0.65rem",
-                        color: i === 3 ? "var(--accent-primary)" : "var(--text-tertiary)",
-                        fontWeight: i === 3 ? 600 : 400,
-                     }}
+                     className={`text-[0.65rem] ${i === 3 ? "text-[var(--accent-primary)] font-semibold" : "text-[var(--text-tertiary)] font-normal"}`}
                   >
                      {day}
                   </span>
@@ -297,22 +184,11 @@ function TimingVisual() {
             ))}
          </div>
          {/* Best window pill */}
-         <div style={{ textAlign: "center" }}>
-            <span
-               style={{
-                  display: "inline-block",
-                  padding: "0.35rem 1rem",
-                  borderRadius: "50px",
-                  background: "var(--accent-primary-glow)",
-                  color: "var(--accent-primary)",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  marginBottom: "0.5rem",
-               }}
-            >
+         <div className="text-center">
+            <span className="inline-block py-[0.35rem] px-4 rounded-full bg-[var(--accent-primary-glow)] text-[var(--accent-primary)] text-xs font-semibold mb-2">
                Best window: Thu 8–9am
             </span>
-            <p style={{ fontSize: "0.7rem", color: "var(--text-tertiary)" }}>
+            <p className="text-[0.7rem] text-[var(--text-tertiary)]">
                Confidence: High · Based on 3 opens
             </p>
          </div>
@@ -333,37 +209,17 @@ function GhostVisual() {
    return (
       <div>
          {/* Timeline */}
-         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1.25rem" }}>
+         <div className="flex flex-col gap-2 mb-5">
             {events.map((ev, i) => (
-               <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+               <div key={i} className="flex items-center gap-3 relative">
                   <div
-                     style={{
-                        width: "10px",
-                        height: "10px",
-                        borderRadius: "50%",
-                        background: ev.filled ? "var(--accent-primary)" : "transparent",
-                        border: ev.filled
-                           ? "2px solid var(--accent-primary)"
-                           : "2px solid var(--text-tertiary)",
-                        flexShrink: 0,
-                     }}
+                     className={`w-2.5 h-2.5 rounded-full shrink-0 border-2 ${ev.filled ? "bg-[var(--accent-primary)] border-[var(--accent-primary)]" : "bg-transparent border-[var(--text-tertiary)]"}`}
                   />
                   {i < events.length - 1 && (
-                     <div
-                        style={{
-                           position: "absolute",
-                           left: "calc(2rem + 4px)",
-                           width: "1px",
-                           height: "24px",
-                           borderLeft: "1px dashed var(--bg-border)",
-                        }}
-                     />
+                     <div className="absolute left-[5px] top-[14px] w-[1px] h-6 border-l border-dashed border-[var(--bg-border)]" />
                   )}
                   <span
-                     style={{
-                        fontSize: "0.8rem",
-                        color: ev.filled ? "var(--text-secondary)" : "var(--text-tertiary)",
-                     }}
+                     className={`text-[0.8rem] ${ev.filled ? "text-[var(--text-secondary)]" : "text-[var(--text-tertiary)]"}`}
                   >
                      {ev.label}
                   </span>
@@ -371,31 +227,14 @@ function GhostVisual() {
             ))}
          </div>
          {/* Diagnosis */}
-         <div
-            style={{
-               padding: "1rem 1.25rem",
-               borderRadius: "12px",
-               background: "var(--accent-secondary-glow)",
-               border: "1px solid rgba(245, 237, 237, 0.15)",
-            }}
-         >
-            <p style={{ fontSize: "0.8rem", color: "var(--accent-secondary)", fontWeight: 600, marginBottom: "0.3rem" }}>
+         <div className="py-4 px-5 rounded-xl bg-[var(--accent-secondary-glow)] border border-[rgba(245,237,237,0.15)]">
+            <p className="text-[0.8rem] text-[var(--accent-secondary)] font-semibold mb-1">
                Ghost detected · Tone mismatch
             </p>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "0.75rem" }}>
+            <p className="text-[0.75rem] text-[var(--text-secondary)] mb-3">
                C-type lead, sent I-style message. Switch to data-driven approach.
             </p>
-            <span
-               style={{
-                  display: "inline-block",
-                  padding: "0.35rem 1rem",
-                  borderRadius: "50px",
-                  background: "var(--accent-primary)",
-                  color: "var(--text-primary)",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-               }}
-            >
+            <span className="inline-block py-[0.35rem] px-4 rounded-full bg-[var(--accent-primary)] text-[var(--text-primary)] text-xs font-semibold cursor-pointer">
                Re-engage →
             </span>
          </div>
@@ -409,10 +248,10 @@ function HandoffVisual() {
    const fill = circumference * (1 - 0.72);
 
    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5rem" }}>
+      <div className="flex flex-col items-center gap-6">
          {/* Score ring */}
-         <div style={{ position: "relative", width: "140px", height: "140px" }}>
-            <svg width="140" height="140" viewBox="0 0 140 140" style={{ transform: "rotate(-90deg)" }}>
+         <div className="relative w-[140px] h-[140px]">
+            <svg width="140" height="140" viewBox="0 0 140 140" className="-rotate-90">
                <circle cx="70" cy="70" r="58" fill="none" stroke="var(--bg-elevated)" strokeWidth="10" />
                <circle
                   cx="70"
@@ -426,86 +265,39 @@ function HandoffVisual() {
                   strokeLinecap="round"
                />
             </svg>
-            <div
-               style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-               }}
-            >
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
                <span
-                  style={{
-                     fontFamily: "var(--font-heading)",
-                     fontSize: "2rem",
-                     fontWeight: 700,
-                     color: "var(--accent-primary)",
-                     lineHeight: 1,
-                  }}
+                  className="text-2xl font-bold text-[var(--accent-primary)] leading-none font-[family-name:var(--font-heading)]"
+                  style={{ fontFamily: "var(--font-heading)" }}
                >
                   72
                </span>
-               <span style={{ fontSize: "0.7rem", color: "var(--text-tertiary)" }}>/ 100</span>
+               <span className="text-[0.7rem] text-[var(--text-tertiary)]">/ 100</span>
             </div>
          </div>
 
          {/* Call Brief */}
-         <div
-            style={{
-               width: "100%",
-               padding: "1rem 1.25rem",
-               borderRadius: "12px",
-               background: "var(--bg-elevated)",
-            }}
-         >
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.8rem" }}>
-               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "var(--text-secondary)" }}>Crystal</span>
-                  <span
-                     style={{
-                        padding: "0.1rem 0.5rem",
-                        borderRadius: "4px",
-                        background: "var(--accent-primary-glow)",
-                        color: "var(--accent-primary)",
-                        fontWeight: 600,
-                        fontSize: "0.7rem",
-                     }}
-                  >
+         <div className="w-full py-4 px-5 rounded-xl bg-[var(--bg-elevated)]">
+            <div className="flex flex-col gap-2 text-[0.8rem]">
+               <div className="flex justify-between items-center">
+                  <span className="text-[var(--text-secondary)]">Crystal</span>
+                  <span className="py-[0.1rem] px-2 rounded bg-[var(--accent-primary-glow)] text-[var(--accent-primary)] font-semibold text-[0.7rem]">
                      D-type
                   </span>
                </div>
-               <div style={{ color: "var(--text-secondary)" }}>
-                  <span style={{ color: "var(--text-tertiary)", fontSize: "0.7rem" }}>Objection: </span>
+               <div className="text-[var(--text-secondary)]">
+                  <span className="text-[var(--text-tertiary)] text-[0.7rem]">Objection: </span>
                   Budget approval
                </div>
-               <div style={{ color: "var(--text-secondary)", fontStyle: "italic", fontSize: "0.75rem" }}>
+               <div className="text-[var(--text-secondary)] italic text-[0.75rem]">
                   &quot;I&apos;ll keep this to 90 seconds...&quot;
                </div>
             </div>
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
-               <button
-                  style={{
-                     padding: "0.4rem 0.8rem",
-                     borderRadius: "8px",
-                     background: "var(--accent-primary)",
-                     color: "var(--text-primary)",
-                     fontSize: "0.75rem",
-                     fontWeight: 600,
-                  }}
-               >
+            <div className="flex gap-2 mt-3">
+               <button className="py-1.5 px-3 rounded-lg bg-[var(--accent-primary)] text-[var(--text-primary)] text-[0.75rem] font-semibold">
                   📞 Call Now
                </button>
-               <button
-                  style={{
-                     padding: "0.4rem 0.8rem",
-                     borderRadius: "8px",
-                     border: "1px solid var(--bg-border)",
-                     color: "var(--text-secondary)",
-                     fontSize: "0.75rem",
-                  }}
-               >
+               <button className="py-1.5 px-3 rounded-lg border border-[var(--bg-border)] text-[var(--text-secondary)] text-[0.75rem]">
                   📅 Send Calendly
                </button>
             </div>
@@ -523,38 +315,18 @@ function CommitteeMapperVisual() {
    ];
 
    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-         <div
-            style={{
-               textAlign: "center",
-               fontSize: "0.72rem",
-               color: "var(--text-tertiary)",
-               letterSpacing: "0.06em",
-               textTransform: "uppercase",
-            }}
-         >
+      <div className="flex flex-col gap-4">
+         <div className="text-center text-[0.72rem] text-[var(--text-tertiary)] tracking-[0.06em] uppercase">
             Existing leads expanded into buying committee
          </div>
-         <div
-            style={{
-               display: "grid",
-               gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-               gap: "0.75rem",
-            }}
-         >
+         <div className="grid grid-cols-3 gap-3">
             {stakeholders.map((entry) => (
                <div
                   key={entry.role}
-                  style={{
-                     borderRadius: "12px",
-                     background: "var(--bg-elevated)",
-                     padding: "0.9rem 0.65rem",
-                     border: "1px solid var(--bg-border)",
-                     textAlign: "center",
-                  }}
+                  className="rounded-xl bg-[var(--bg-elevated)] py-3.5 px-2.5 border border-[var(--bg-border)] text-center"
                >
-                  <div style={{ fontSize: "0.65rem", color: "var(--text-tertiary)", marginBottom: "0.35rem" }}>{entry.role}</div>
-                  <div style={{ fontSize: "0.78rem", color: entry.tone, fontWeight: 600, lineHeight: 1.3 }}>{entry.person}</div>
+                  <div className="text-[0.65rem] text-[var(--text-tertiary)] mb-1">{entry.role}</div>
+                  <div className="text-[0.78rem] font-semibold leading-[1.3]" style={{ color: entry.tone }}>{entry.person}</div>
                </div>
             ))}
          </div>
@@ -571,27 +343,22 @@ function ObjectionPreloaderVisual() {
    ];
 
    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+      <div className="flex flex-col gap-3">
          {objections.map((item) => (
             <div
                key={item.objection}
-               style={{
-                  borderRadius: "12px",
-                  border: "1px solid var(--bg-border)",
-                  background: "var(--bg-elevated)",
-                  padding: "0.8rem 0.9rem",
-               }}
+               className="rounded-xl border border-[var(--bg-border)] bg-[var(--bg-elevated)] py-3 px-3.5"
             >
-               <div style={{ fontSize: "0.72rem", color: "var(--text-tertiary)", marginBottom: "0.35rem" }}>
+               <div className="text-[0.72rem] text-[var(--text-tertiary)] mb-1">
                   Predicted objection
                </div>
-               <div style={{ fontSize: "0.8rem", color: "var(--text-primary)", marginBottom: "0.45rem", fontWeight: 600 }}>
+               <div className="text-[0.8rem] text-[var(--text-primary)] mb-[0.45rem] font-semibold">
                   {item.objection}
                </div>
-               <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", lineHeight: 1.4 }}>
+               <div className="text-[0.72rem] text-[var(--text-secondary)] leading-[1.4]">
                   AI reply: {item.response}
                </div>
-               <div style={{ fontSize: "0.68rem", color: "var(--accent-secondary)", marginTop: "0.45rem" }}>
+               <div className="text-[0.68rem] text-[var(--accent-secondary)] mt-[0.45rem]">
                   Confidence: {item.confidence}
                </div>
             </div>
@@ -610,28 +377,21 @@ function ROISimulatorVisual() {
    ];
 
    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-         <div
-            style={{
-               height: "120px",
-               borderRadius: "14px",
-               border: "1px solid var(--bg-border)",
-               background: "linear-gradient(180deg, var(--accent-primary-glow) 0%, transparent 100%)",
-               display: "flex",
-               alignItems: "flex-end",
-               padding: "0.75rem",
-               gap: "0.4rem",
-            }}
-         >
+      <div className="flex flex-col gap-4">
+         <div className="h-[120px] rounded-2xl border border-[var(--bg-border)] bg-gradient-to-b from-[var(--accent-primary-glow)] to-transparent flex items-end p-3 gap-1.5">
             {[24, 38, 44, 58, 67, 78, 86].map((v, idx) => (
-               <div key={idx} style={{ flex: 1, height: `${v}%`, borderRadius: "4px 4px 2px 2px", background: "var(--accent-primary)" }} />
+               <div
+                  key={idx}
+                  className="flex-1 rounded-t-md rounded-b-sm bg-[var(--accent-primary)]"
+                  style={{ height: `${v}%` }}
+               />
             ))}
          </div>
-         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.55rem" }}>
+         <div className="grid grid-cols-2 gap-2">
             {metrics.map((metric) => (
-               <div key={metric.label} style={{ borderRadius: "10px", background: "var(--bg-elevated)", padding: "0.7rem 0.75rem" }}>
-                  <div style={{ fontSize: "0.65rem", color: "var(--text-tertiary)", marginBottom: "0.2rem" }}>{metric.label}</div>
-                  <div style={{ fontSize: "0.95rem", color: metric.tone, fontWeight: 700 }}>{metric.value}</div>
+               <div key={metric.label} className="rounded-lg bg-[var(--bg-elevated)] py-3 px-3">
+                  <div className="text-[0.65rem] text-[var(--text-tertiary)] mb-1">{metric.label}</div>
+                  <div className="text-[0.95rem] font-bold" style={{ color: metric.tone }}>{metric.value}</div>
                </div>
             ))}
          </div>
@@ -648,69 +408,43 @@ function LinkEngagementTrackerVisual() {
    ];
 
    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
-         <div
-            style={{
-               borderRadius: "12px",
-               border: "1px solid var(--bg-border)",
-               background: "linear-gradient(180deg, var(--accent-secondary-glow) 0%, transparent 100%)",
-               padding: "0.9rem 1rem",
-            }}
-         >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-               <span style={{ fontSize: "0.72rem", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <div className="flex flex-col gap-3.5">
+         <div className="rounded-xl border border-[var(--bg-border)] bg-gradient-to-b from-[var(--accent-secondary-glow)] to-transparent py-3.5 px-4">
+            <div className="flex justify-between items-center mb-2">
+               <span className="text-[0.72rem] text-[var(--text-tertiary)] uppercase tracking-[0.06em]">
                   Live activity
                </span>
-               <span
-                  style={{
-                     fontSize: "0.68rem",
-                     color: "var(--accent-secondary)",
-                     background: "var(--bg-elevated)",
-                     border: "1px solid var(--bg-border)",
-                     borderRadius: "999px",
-                     padding: "0.16rem 0.5rem",
-                  }}
-               >
+               <span className="text-[0.68rem] text-[var(--accent-secondary)] bg-[var(--bg-elevated)] border border-[var(--bg-border)] rounded-full py-[0.16rem] px-2">
                   Updated now
                </span>
             </div>
-            <div style={{ fontSize: "1.45rem", color: "var(--text-primary)", fontFamily: "var(--font-heading)", lineHeight: 1 }}>
+            <div
+               className="text-[1.45rem] text-[var(--text-primary)] leading-none font-[family-name:var(--font-heading)]"
+               style={{ fontFamily: "var(--font-heading)" }}
+            >
                79 Clicks
             </div>
-            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.3rem" }}>
+            <div className="text-[0.75rem] text-[var(--text-secondary)] mt-1">
                12 high-intent leads flagged this hour
             </div>
          </div>
 
-         <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
+         <div className="flex flex-col gap-2">
             {links.map((item) => (
                <div
                   key={item.label}
-                  style={{
-                     borderRadius: "10px",
-                     background: "var(--bg-elevated)",
-                     border: "1px solid var(--bg-border)",
-                     padding: "0.65rem 0.75rem",
-                  }}
+                  className="rounded-lg bg-[var(--bg-elevated)] border border-[var(--bg-border)] py-2.5 px-3"
                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.45rem" }}>
-                     <span style={{ fontSize: "0.78rem", color: "var(--text-primary)" }}>{item.label}</span>
-                     <span style={{ fontSize: "0.72rem", color: item.tone, fontWeight: 600 }}>{item.ctr} CTR</span>
+                  <div className="flex justify-between items-center mb-1">
+                     <span className="text-[0.78rem] text-[var(--text-primary)]">{item.label}</span>
+                     <span className="text-[0.72rem] font-semibold" style={{ color: item.tone }}>{item.ctr} CTR</span>
                   </div>
-                  <div
-                     style={{
-                        height: "6px",
-                        borderRadius: "999px",
-                        background: "var(--bg-card)",
-                        overflow: "hidden",
-                     }}
-                  >
+                  <div className="h-1.5 rounded-full bg-[var(--bg-card)] overflow-hidden">
                      <div
+                        className="h-full rounded-full"
                         style={{
                            width: `${Math.min(item.clicks, 40) * 2.3}%`,
-                           height: "100%",
                            background: item.tone,
-                           borderRadius: "999px",
                         }}
                      />
                   </div>

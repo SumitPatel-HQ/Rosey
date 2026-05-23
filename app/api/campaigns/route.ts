@@ -11,12 +11,21 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from("campaigns")
-    .select("*, campaign_leads:campaign_leads(count)")
+    .select("*")
     .eq("product_id", productId)
     .order("created_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[GET /api/campaigns] Supabase error:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    return NextResponse.json(
+      { error: error.message || "Database query failed", code: error.code },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(data);
@@ -37,7 +46,16 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[POST /api/campaigns] Supabase error:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    return NextResponse.json(
+      { error: error.message || "Failed to create campaign", code: error.code },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(data, { status: 201 });

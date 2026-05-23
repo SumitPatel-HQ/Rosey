@@ -42,7 +42,8 @@ const AUTH_DIR = resolve(process.cwd(), "whatsapp-session");
 
 // ─── Init / reconnect ─────────────────────────────────────────────────────────
 
-export async function initWhatsApp(): Promise<void> {
+export async function initWhatsAppGate(): Promise<void> {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
 
   sock = makeWASocket({
@@ -97,7 +98,7 @@ export async function initWhatsApp(): Promise<void> {
         `[WhatsApp] Connection closed (code=${statusCode}), reconnect=${shouldReconnect}`
       );
       if (shouldReconnect) {
-        setTimeout(() => initWhatsApp(), 5_000);
+        setTimeout(() => initWhatsAppGate(), 5_000);
       } else {
         // Logged out — clear socket; next initWhatsApp() will show a fresh QR
         sock = null;

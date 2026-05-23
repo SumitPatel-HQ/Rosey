@@ -6,7 +6,7 @@ import http from "http";
 config({ path: resolve(process.cwd(), ".env.local") });
 
 import {
-  initWhatsApp,
+  initWhatsAppGate,
   getWhatsAppStatus,
   getWhatsAppQR,
   disconnectWhatsApp,
@@ -123,7 +123,7 @@ function startGateway(): void {
       if (method === "DELETE" && url.pathname === "/session") {
         await disconnectWhatsApp();
         sendJson(res, 200, { ok: true });
-        setTimeout(() => initWhatsApp(), 3_000);
+        setTimeout(() => initWhatsAppGate(), 3_000);
         return;
       }
 
@@ -148,7 +148,7 @@ console.log(
 );
 
 // 1. Start WhatsApp socket (will print QR to terminal on first run)
-initWhatsApp().catch((err) =>
+initWhatsAppGate().catch((err) =>
   console.error("[WhatsApp] Failed to initialise:", err)
 );
 

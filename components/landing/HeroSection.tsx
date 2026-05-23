@@ -2,8 +2,11 @@
 
 import { useRef } from "react";
 import gsap from "gsap";
+import Link from "next/link";
 import useIsomorphicLayoutEffect from "@/hooks/useIsomorphicLayoutEffect";
 import WorkflowVisual from "./WorkflowVisual";
+import { useBoot } from "@/providers/BootProvider";
+import { useAuth } from "@clerk/nextjs";
 
 export default function HeroSection() {
    const sectionRef = useRef<HTMLElement>(null);
@@ -11,122 +14,94 @@ export default function HeroSection() {
    const headingRef = useRef<HTMLDivElement>(null);
    const subRef = useRef<HTMLParagraphElement>(null);
    const ctaRef = useRef<HTMLDivElement>(null);
+   const { isBooted } = useBoot();
+   const { isSignedIn } = useAuth();
+   const startBuildingHref = isSignedIn ? "/dashboard" : "/sign-in";
+   const startBuildingLabel = isSignedIn ? "Dashboard" : "Start Building";
 
    useIsomorphicLayoutEffect(() => {
-      const ctx = gsap.context(() => {
-         // Badge
-         gsap.from(badgeRef.current, {
-            opacity: 0,
-            y: 20,
-            duration: 0.6,
-            ease: "power2.out",
-            delay: 0.3,
-         });
+      if (!isBooted) return;
 
-         // Heading lines
-         const lines = headingRef.current?.querySelectorAll(".hero-line");
-         if (lines) {
-            gsap.from(lines, {
-               opacity: 0,
-               y: 40,
-               duration: 0.8,
-               ease: "power3.out",
-               stagger: 0.15,
-               delay: 0.5,
+      const ctx = gsap.context(() => {
+         const tl = gsap.timeline({ defaults: { ease: "expo.out", duration: 1.8 } });
+
+         // 1. Unified Cinematic Entrance
+         tl.from(badgeRef.current, { opacity: 0, y: 15 }, 0.2)
+            .from(
+               headingRef.current?.querySelectorAll(".hero-line") || [],
+               { opacity: 0, y: 30, stagger: 0.15 },
+               0.4
+            )
+            .from(subRef.current, { opacity: 0, y: 20 }, 0.8)
+            .from(ctaRef.current, { opacity: 0, y: 20 }, 1.0);
+
+         // 2. Continuous Z-Space Scroll Handoff
+         const glow = sectionRef.current?.querySelector(".hero-glow");
+         const content = sectionRef.current?.querySelector(".hero-content");
+
+         if (glow && content) {
+            // Subtle ambient parallax for the background glow
+            gsap.to(glow, {
+               y: "15%",
+               ease: "none",
+               scrollTrigger: {
+                  trigger: sectionRef.current,
+                  start: "top top",
+                  end: "bottom top",
+                  scrub: true,
+               },
+            });
+
+            // The hero content recedes gently instead of just scrolling away flatly
+            gsap.to(content, {
+               y: "10%",
+               opacity: 0.2, // Recede into background, but don't vanish instantly
+               scale: 0.98,  // Micro-depth
+               ease: "none",
+               scrollTrigger: {
+                  trigger: sectionRef.current,
+                  start: "top top",
+                  end: "bottom top",
+                  scrub: true,
+               },
             });
          }
-
-         // Sub copy
-         gsap.from(subRef.current, {
-            opacity: 0,
-            y: 20,
-            duration: 0.8,
-            ease: "power2.out",
-            delay: 0.8,
-         });
-
-         // CTAs
-         gsap.from(ctaRef.current, {
-            opacity: 0,
-            y: 20,
-            duration: 0.6,
-            ease: "power2.out",
-            delay: 1.0,
-         });
-
       }, sectionRef);
 
       return () => ctx.revert();
-   }, []);
+   }, [isBooted]);
 
    return (
       <section
          ref={sectionRef}
-         style={{
-            height: "100vh",
-            background: "var(--bg-base)",
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            padding: "5rem 2rem 2rem",
-            overflow: "hidden",
-         }}
+         className="h-screen bg-[var(--bg-base)] relative flex items-center pt-20 px-8 pb-8 overflow-hidden"
       >
          {/* Hero radial glow */}
          <div
-            style={{
-               position: "absolute",
-               top: 0,
-               left: 0,
-               right: 0,
-               bottom: 0,
-               background: "var(--gradient-hero)",
-               pointerEvents: "none",
-               zIndex: 0,
-            }}
+            className="hero-glow absolute inset-0 bg-[var(--gradient-hero)] pointer-events-none z-0"
          />
 
          {/* Centered Content Container */}
          <div
-            style={{
-               width: "100%",
-               maxWidth: "1400px",
-               margin: "0 auto",
-               display: "grid",
-               gridTemplateColumns: "1.1fr 0.9fr",
-               alignItems: "center",
-               gap: "4.5rem",
-               position: "relative",
-               zIndex: 1,
-            }}
+            className="hero-content w-full max-w-[1500px] mx-auto grid grid-cols-[1fr_1fr] items-center gap-[4rem] relative z-10"
          >
             {/* LEFT — Tagline */}
-            <div style={{ paddingLeft: "2.25rem" }}>
+            <div className="pl-9">
                {/* Heading */}
-               <div ref={headingRef} style={{ margin: "0 0 1.5rem", paddingBottom: "0.25rem", overflow: "visible" }}>
+               <div ref={headingRef} className="mb-6 pb-1 overflow-visible">
                   <h1
-                     style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: "clamp(3rem, 4.9vw, 4.4rem)",
-                        fontWeight: 800,
-                        lineHeight: 1.14,
-                        letterSpacing: "-0.03em",
-                        color: "var(--text-primary)",
-                        textTransform: "none",
-                        overflow: "visible",
-                      }}
+                     className="text-[clamp(3rem,4.9vw,4.4rem)] font-extrabold leading-[1.14] tracking-[-0.03em] text-[var(--text-primary)] normal-case overflow-visible font-[family-name:var(--font-body)]"
                   >
-                     <span className="hero-line" style={{ display: "block", lineHeight: 1.08 }}>
-                        Intelligent outreach.
+                     <span className="hero-line block leading-[1.08]">
+                        Intelligent <span className="italic">outreach.</span>
                      </span>
-                     <span className="hero-line" style={{ display: "block", lineHeight: 1.08 }}>
-                        Perfectly timed.
+                     <span className="hero-line block leading-[1.08]">
+                        Perfectly <span className="italic">timed.</span>
                      </span>
                      <span
-                        className="hero-line gradient-text"
-                        style={{ display: "block", lineHeight: 1.08, paddingBottom: "0.12em" }}
+                        className="hero-line gradient-text block leading-[1.08] pb-[0.12em]"
                      >
-                        Deeply personal.
+                        Deeply <span className="italic">personal.</span>
                      </span>
                   </h1>
                </div>
@@ -134,13 +109,7 @@ export default function HeroSection() {
                {/* Sub-copy */}
                <p
                   ref={subRef}
-                  style={{
-                     fontSize: "clamp(1rem, 1.2vw, 1.12rem)",
-                     color: "var(--text-secondary)",
-                     lineHeight: 1.75,
-                     maxWidth: "520px",
-                     marginBottom: "2.5rem",
-                  }}
+                  className="text-[clamp(1rem,1.2vw,1.12rem)] text-[var(--text-secondary)] leading-[1.75] max-w-[520px] mb-10"
                >
                   Discover how Rosey researches your leads, writes personalized messages at the perfect moment, and hands off to your team only when they&apos;re ready to close.
                </p>
@@ -148,55 +117,25 @@ export default function HeroSection() {
                {/* CTAs */}
                <div
                   ref={ctaRef}
-                  style={{
-                     display: "flex",
-                     alignItems: "center",
-                     gap: "3rem",
-                  }}
+                  className="flex items-center gap-12"
                >
-                  <button
-                     style={{
-                        padding: "1.1rem 2.8rem",
-                        background: "var(--accent-primary)",
-                        color: "var(--text-primary)",
-                        borderRadius: "50px",
-                        fontSize: "1.05rem",
-                        fontWeight: 750,
-                        transition: "transform 200ms ease, box-shadow 200ms ease",
-                        boxShadow: "0 10px 40px var(--accent-primary-glow)",
-                     }}
-                     onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "translateY(-2px)";
-                        e.currentTarget.style.boxShadow = "0 15px 50px var(--accent-primary-glow)";
-                     }}
-                     onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 10px 40px var(--accent-primary-glow)";
-                     }}
+                  <Link
+                     href={startBuildingHref}
+                     className="px-11 py-[1.1rem] bg-[var(--accent-primary)] text-[var(--text-primary)] rounded-[50px] text-[1.05rem] font-[750] transition-all duration-200 ease-in-out shadow-[0_10px_40px_var(--accent-primary-glow)] hover:-translate-y-[2px] hover:shadow-[0_15px_50px_var(--accent-primary-glow)]"
                   >
-                     Start Building
-                  </button>
+                     {startBuildingLabel}
+                  </Link>
                   <button
-                     style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.6rem",
-                        color: "var(--text-primary)",
-                        fontSize: "1.05rem",
-                        fontWeight: 650,
-                        transition: "opacity 200ms ease",
-                     }}
-                     onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
-                     onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                     className="flex items-center gap-[0.6rem] text-[var(--text-primary)] text-[1.05rem] font-[650] transition-opacity duration-200 ease-in-out hover:opacity-70 "
                   >
                      Watch Demo
-                     <span style={{ fontSize: "1.3rem" }}>→</span>
+                     <span className="text-[1.3rem]">→</span>
                   </button>
                </div>
             </div>
 
             {/* RIGHT — Workflow Visual */}
-            <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "1rem" }}>
+            <div className="flex justify-end pr-4">
                <WorkflowVisual />
             </div>
          </div>

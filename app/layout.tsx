@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import GSAPProvider from "@/providers/GSAPProvider";
 import LenisProvider from "@/providers/LenisProvider";
+import BootProvider from "@/providers/BootProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,17 +44,26 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `if ("scrollRestoration" in window.history) { window.history.scrollRestoration = "manual"; }`
+            }}
+          />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${bebasNeue.variable} font-sans antialiased`}
         >
-          <GSAPProvider>
-            <LenisProvider>
-              <ThemeProvider>
-                {children}
-                <Toaster />
-              </ThemeProvider>
-            </LenisProvider>
-          </GSAPProvider>
+          <BootProvider>
+            <GSAPProvider>
+              <LenisProvider>
+                <ThemeProvider>
+                  {children}
+                  <Toaster />
+                </ThemeProvider>
+              </LenisProvider>
+            </GSAPProvider>
+          </BootProvider>
         </body>
       </html>
     </ClerkProvider>

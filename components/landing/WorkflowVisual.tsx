@@ -35,28 +35,17 @@ export default function WorkflowVisual() {
    }, []);
 
    return (
-      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "center" }}>
+      <div className="relative flex justify-center w-full">
          <div
             ref={containerRef}
-            style={{
-               width: "100%",
-               maxWidth: "760px",
-               boxShadow: "0 24px 54px rgba(0, 0, 0, 0.40)",
-               borderRadius: "24px",
-               overflow: "hidden",
-               border: "1px solid var(--bg-border)",
-            }}
+            className="w-full shadow-[0_30px_60px_rgba(0,0,0,0.50)] rounded-[24px] overflow-hidden border border-[var(--bg-border)]"
          >
             <Image
                src="/workflow.png"
                alt="Rosey Workflow"
                width={1178}
                height={660}
-               style={{
-                  width: "100%",
-                  height: "auto",
-                  display: "block",
-               }}
+               className="w-full h-auto block"
             />
          </div>
       </div>

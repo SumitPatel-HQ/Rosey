@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import "gsap/ScrollTrigger"; // registers ScrollTrigger plugin, used via gsap context
+import { useGSAP } from "@gsap/react";
 import FeatureCard from "./FeatureCard";
+import { useBoot } from "@/providers/BootProvider";
 
-if (typeof window !== "undefined") {
-   gsap.registerPlugin(ScrollTrigger);
-}
+// ScrollTrigger registration is handled once in GSAPProvider.
 
 const features = [
    {
@@ -97,154 +97,106 @@ export default function FeaturesSection() {
    const sectionRef = useRef<HTMLElement>(null);
    const headerRef = useRef<HTMLDivElement>(null);
    const cardsTrackRef = useRef<HTMLDivElement>(null);
-   const stickyRef = useRef<HTMLDivElement>(null);
-   const totalFeatures = features.length;
-   const introPhase = 0.16;
-   const navOffset = "6.5rem";
-   const introScrollVh = 110;
-   const featureScrollVh = 125;
+   const featureRefs = useRef<(HTMLDivElement | null)[]>([]);
+   const { isBooted } = useBoot();
 
-   useEffect(() => {
-      const section = sectionRef.current;
+   const totalFeatures = features.length;
+   const navOffset = "6.5rem";
+
+   // Balanced scroll distance: 90 was too fast, 160 was too slow
+   const featureScrollVh = 120;
+   const introScrollVh = 100;
+   const totalScrollVh = introScrollVh + totalFeatures * featureScrollVh;
+
+   useGSAP(() => {
+      if (!isBooted) return;
+
       const header = headerRef.current;
       const cardsTrack = cardsTrackRef.current;
-      const sticky = stickyRef.current;
-      if (!section || !header || !cardsTrack || !sticky) return;
+      if (!header || !cardsTrack) return;
 
-      const ctx = gsap.context(() => {
-         gsap.fromTo(
-            header,
-            { y: 120 },
-            {
-               y: 0,
-               ease: "none",
-               scrollTrigger: {
-                  trigger: cardsTrack,
-                  start: "top top",
-                  end: `${introPhase * 100}% top`,
-                  scrub: 1,
-               },
-            }
-         );
-
-         gsap.fromTo(
-            header,
-            { opacity: 1 },
-            {
-               opacity: 0.8,
-               ease: "none",
-               scrollTrigger: {
-                  trigger: cardsTrack,
-                  start: `${introPhase * 100}% top`,
-                  end: `${(introPhase + 0.1) * 100}% top`,
-                  scrub: 1,
-               },
-            }
-         );
-
-         const scrollRange = 1 - introPhase;
-         const featureSegment = scrollRange / totalFeatures;
-
-         features.forEach((_, i) => {
-            const featureEl = sticky.querySelector(`[data-feature="${i}"]`) as HTMLElement;
-            if (!featureEl) return;
-
-            const progress = introPhase + (i / totalFeatures) * scrollRange;
-            const nextProgress = introPhase + ((i + 1) / totalFeatures) * scrollRange;
-            const revealStart = progress + featureSegment * 0.03;
-            const revealEnd = progress + featureSegment * 0.36;
-
-            gsap.fromTo(
-               featureEl,
-               { opacity: 0, y: 90 },
-               {
-                  opacity: 1,
-                  y: 0,
-                  ease: "power2.out",
-                  scrollTrigger: {
-                     trigger: cardsTrack,
-                     start: `${revealStart * 100}% top`,
-                     end: `${revealEnd * 100}% top`,
-                     scrub: 0.6,
-                  },
-               }
-            );
-
-            if (i < totalFeatures - 1) {
-               const exitStart = nextProgress - featureSegment * 0.28;
-               const exitEnd = nextProgress - featureSegment * 0.04;
-               gsap.to(featureEl, {
-                  opacity: 0,
-                  y: -40,
-                  ease: "power2.in",
-                  scrollTrigger: {
-                     trigger: cardsTrack,
-                     start: `${exitStart * 100}% top`,
-                     end: `${exitEnd * 100}% top`,
-                     scrub: 0.6,
-                  },
-               });
-            }
-         });
-
-         gsap.to(header, {
-            opacity: 0,
-            ease: "none",
+      // 1. Header Entrance
+      gsap.fromTo(
+         header,
+         { y: 100, opacity: 0, scale: 0.98 }, // Grounded y, micro-depth scale
+         {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            ease: "power3.out", // More luxurious curve than power2
             scrollTrigger: {
                trigger: cardsTrack,
-               start: `${(1 - 0.1) * 100}% top`,
-               end: "bottom top",
-               scrub: 1,
+               start: "top 85%",
+               end: "top 30%",
+               scrub: true,
             },
-         });
-      }, section);
+         }
+      );
 
-      return () => ctx.revert();
-   }, [introPhase, totalFeatures]);
+      // 2. Main Sequence Timeline
+      // Using a single timeline guarantees tweens never overlap improperly 
+      // even if the user scrolls very fast.
+      const tl = gsap.timeline({
+         scrollTrigger: {
+            trigger: cardsTrack,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: 0.5, // Low scrub because Lenis already handles the scroll smoothing
+         }
+      });
+
+      // Dim the header while scrolling
+      // (Removed: Header now stays visible as the section title)
+
+      features.forEach((_, i) => {
+         const featureEl = featureRefs.current[i];
+         if (!featureEl) return;
+
+         // Spacing each card out on the timeline.
+         // A card enters over 1.0, stays for 1.0, and exits over 1.0.
+         // Next card starts entering slightly before the previous one finishes exiting.
+         const startTime = i * 2.5;
+
+         tl.fromTo(featureEl,
+            { opacity: 0, y: 80, scale: 0.98 },
+            { opacity: 1, y: 0, scale: 1, duration: 1, ease: "power3.out" },
+            startTime
+         );
+
+         if (i < totalFeatures - 1) {
+            tl.to(featureEl,
+               { opacity: 0, y: -60, scale: 0.98, duration: 1, ease: "power3.inOut" }, // Smooth exit rather than sharp power2.in
+               startTime + 2.0 // Starts exiting exactly when the "stay" period ends
+            );
+         } else {
+            // Give the last card a bit of extra timeline space to stay on screen
+            tl.to({}, { duration: 1.5 }, startTime + 2.0);
+         }
+      });
+
+      // Final header exit at the very end of the scroll track
+      tl.to(header, { opacity: 0, duration: 0.5 }, "-=0.5");
+
+   }, { scope: sectionRef, dependencies: [totalFeatures, isBooted] });
 
    return (
-      <section ref={sectionRef} id="features" style={{ position: "relative", background: "var(--bg-base)" }}>
+      <section ref={sectionRef} id="features" className="relative bg-[var(--bg-base)]">
          <div
             ref={cardsTrackRef}
-            style={{ position: "relative", height: `${introScrollVh + totalFeatures * featureScrollVh}vh` }}
+            className="relative"
+            style={{ height: `${totalScrollVh}vh` }}
          >
             <div
-               ref={stickyRef}
-               style={{
-                  position: "sticky",
-                  top: navOffset,
-                  height: `calc(100vh - ${navOffset})`,
-                  overflow: "hidden",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-               }}
+               className="sticky flex items-center justify-center"
+               style={{ top: navOffset, height: `calc(100vh - ${navOffset})` }}
             >
                <div
                   ref={headerRef}
-                  style={{
-                     position: "absolute",
-                     top: "2rem",
-                     left: 0,
-                     right: 0,
-                     display: "flex",
-                     flexDirection: "column",
-                     alignItems: "center",
-                     pointerEvents: "none",
-                     zIndex: 3,
-                  }}
+                  className="absolute top-12 inset-x-0 flex flex-col items-center pointer-events-none"
                >
                   <h2
-                     style={{
-                        fontFamily: "var(--font-heading)",
-                        fontSize: "clamp(1.4rem, 3vw, 2.2rem)",
-                        color: "var(--text-primary)",
-                        textAlign: "center",
-                        letterSpacing: "-0.02em",
-                        whiteSpace: "nowrap",
-                        paddingInline: "1rem",
-                        textTransform: "uppercase",
-                      }}
+                     className="text-[clamp(1.4rem,3vw,2.3rem)] text-[var(--text-primary)] text-center tracking-[-0.02em] whitespace-nowrap px-4 uppercase"
+                     style={{ fontFamily: "var(--font-heading)" }}
                   >
                      How Rosey thinks, sends, and decides.
                   </h2>
@@ -253,27 +205,10 @@ export default function FeaturesSection() {
                {features.map((feature, i) => (
                   <div
                      key={i}
-                     data-feature={i}
-                     style={{
-                        position: "absolute",
-                        inset: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "8rem 2rem 2rem",
-                        opacity: 0,
-                     }}
+                     ref={(el) => { featureRefs.current[i] = el; }}
+                     className="absolute inset-0 flex items-center justify-center pt-10"
                   >
-                     <div
-                        style={{
-                           display: "grid",
-                           gridTemplateColumns: "1.1fr 0.9fr",
-                           alignItems: "center",
-                           gap: "4rem",
-                           width: "100%",
-                           maxWidth: "1200px",
-                        }}
-                     >
+                     <div className="grid grid-cols-[1.1fr_0.9fr] items-center gap-16 w-full max-w-[1200px]">
                         <FeatureCard feature={feature} side="visual" />
                         <FeatureCard feature={feature} side="text" />
                      </div>

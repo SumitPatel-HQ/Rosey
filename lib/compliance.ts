@@ -94,7 +94,7 @@ export function buildComplianceFooter(unsubscribeUrl: string): string {
   const physicalAddress =
     process.env.COMPANY_PHYSICAL_ADDRESS || "Address not configured";
 
-  return `\n\n--\nTo unsubscribe from future emails: ${unsubscribeUrl}\n${physicalAddress}`;
+  return `<br><br><div style="font-size: 12px; color: #666;">--<br><a href="${unsubscribeUrl}">To unsubscribe from future emails, click here.</a><br>${physicalAddress}</div>`;
 }
 
 /**

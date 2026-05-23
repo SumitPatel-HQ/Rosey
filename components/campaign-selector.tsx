@@ -28,7 +28,7 @@ export function CampaignSelector() {
         if (Array.isArray(data)) {
           setCampaigns(data);
         } else {
-          console.error("Failed to fetch campaigns:", data);
+          console.error("Failed to fetch campaigns:", data?.error ?? data);
           setCampaigns([]);
         }
       })

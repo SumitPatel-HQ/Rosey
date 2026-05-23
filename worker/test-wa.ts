@@ -13,8 +13,9 @@ import { resolve } from "path";
 
 const AUTH_DIR = resolve(process.cwd(), "whatsapp-session-test");
 
-async function run() {
+async function runTestWa() {
   console.log("[Test] Starting Baileys v7 test...");
+// eslint-disable-next-line react-hooks/rules-of-hooks
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   console.log("[Test] Auth state loaded, has creds:", !!state.creds?.me);
 
@@ -74,4 +75,4 @@ async function run() {
   }, 30_000);
 }
 
-run().catch(console.error);
+runTestWa().catch(console.error);

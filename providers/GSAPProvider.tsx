@@ -3,6 +3,7 @@
 import { useEffect, createContext, useContext, useState, ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useBoot } from "./BootProvider";
 
 interface GSAPContextType {
    isReady: boolean;
@@ -16,6 +17,7 @@ export function useGSAP() {
 
 export default function GSAPProvider({ children }: { children: ReactNode }) {
    const [isReady, setIsReady] = useState(false);
+   const { isBooted } = useBoot();
 
    useEffect(() => {
       gsap.registerPlugin(ScrollTrigger);
@@ -28,13 +30,15 @@ export default function GSAPProvider({ children }: { children: ReactNode }) {
          duration: 1,
       });
 
-      // Avoid synchronous setState in effect to prevent cascading renders
-      const timer = setTimeout(() => {
-         setIsReady(true);
-      }, 0);
+      if (isBooted) {
+         // Avoid synchronous setState in effect to prevent cascading renders
+         const timer = setTimeout(() => {
+            setIsReady(true);
+         }, 0);
 
-      return () => clearTimeout(timer);
-   }, []);
+         return () => clearTimeout(timer);
+      }
+   }, [isBooted]);
 
    return (
       <GSAPContext.Provider value={{ isReady }}>

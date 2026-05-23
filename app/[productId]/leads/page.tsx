@@ -25,7 +25,10 @@ export default function LeadsPage() {
   }, [productId]);
 
   useEffect(() => {
-    fetchLeads();
+    const loadData = async () => {
+      await fetchLeads();
+    };
+    loadData();
   }, [fetchLeads]);
 
   return (

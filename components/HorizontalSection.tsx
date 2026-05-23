@@ -47,9 +47,10 @@ export default function HorizontalSection({
                start: "top top",
                end: `+=${scrollDistance}vh`,
                pin: true,
-               scrub: 1.2,
+               scrub: 0.8, // was 1.2 — aligns with the rest of the scroll system
                invalidateOnRefresh: true,
-               anticipatePin: 1,
+               // anticipatePin removed: with scrollerProxy active it double-compensates,
+               // causing the pin to activate a frame early and visually stutter.
             }
          });
 

@@ -66,6 +66,14 @@ export async function getEffectiveDailyLimit(
     .eq("campaign_id", campaignId)
     .maybeSingle();
 
+  // Allow bypassing warmup via environment variable (useful for testing)
+  if (process.env.DISABLE_WARMUP === 'true') {
+    return {
+      limit: rawRateLimit ?? Infinity,
+      warmup: null,
+    };
+  }
+
   if (!warmup) {
     return {
       limit: rawRateLimit ?? Infinity,

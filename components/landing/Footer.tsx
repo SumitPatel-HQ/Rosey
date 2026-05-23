@@ -1,74 +1,90 @@
 "use client";
 
+import { Github, Twitter, Linkedin } from "lucide-react";
+
 export default function Footer() {
    return (
-      <footer
-         style={{
-            background: "var(--bg-base)",
-            borderTop: "1px solid var(--bg-border)",
-         }}
-      >
-         {/* Row 1 */}
-         <div
-            style={{
-               display: "flex",
-               justifyContent: "space-between",
-               alignItems: "center",
-               padding: "1.5rem 4rem",
-            }}
-         >
-            <a
-               href="#"
-               style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  fontFamily: "var(--font-heading)",
-                  fontSize: "1rem",
-                  fontWeight: 600,
-                  color: "var(--text-primary)",
-               }}
-            >
-               <span style={{ color: "var(--accent-primary)" }}>◈</span>
-               Rosey
-            </a>
+      /*
+       * Outer wrapper: same bg-surface as the card so the padding gap
+       * around the floating card is invisible — no black bars.
+       */
+      <div className="bg-[var(--bg-base)] px-6 md:px-10">
+         <footer className="relative bg-[var(--bg-surface)] border border-[var(--bg-border)] overflow-hidden rounded-t-[5rem] z-10">
+            {/* Top Accent Line */}
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accent-primary)] to-transparent opacity-50" />
 
-            <div style={{ display: "flex", gap: "2rem" }}>
-               {["Features", "Dashboard", "Contact", "Privacy"].map((link) => (
-                  <a
-                     key={link}
-                     href={`#${link.toLowerCase()}`}
-                     style={{
-                        color: "var(--text-tertiary)",
-                        fontSize: "0.8125rem",
-                        transition: "color 200ms ease",
-                     }}
-                     onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "var(--text-secondary)")
-                     }
-                     onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "var(--text-tertiary)")
-                     }
-                  >
-                     {link}
-                  </a>
-               ))}
+            <div className="max-w-7xl mx-auto px-6 md:px-16 py-16 mt-8">
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
+                  {/* Brand & Description */}
+                  <div className="md:col-span-2 space-y-6">
+                     <a
+                        href="#"
+                        className="flex items-center gap-2 text-3xl font-semibold text-[var(--text-primary)] font-[family-name:var(--font-heading)]"
+                        style={{ fontFamily: "var(--font-heading)" }}
+                     >
+                        <span className="text-[var(--accent-primary)] drop-shadow-[0_0_10px_rgba(215,35,35,0.5)]">◈</span>
+                        Rosey
+                     </a>
+                     <p className="text-[var(--text-secondary)] text-sm max-w-sm leading-relaxed">
+                        An advanced AI agent building the future of automated outreach and campaign management. Precise, cinematic, and intelligent.
+                     </p>
+                     <div className="flex gap-4 pt-4">
+                        <a href="#" className="p-2.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-primary)] hover:bg-[var(--accent-primary-glow)] transition-all shadow-lg">
+                           <Twitter size={18} />
+                        </a>
+                        <a href="#" className="p-2.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-primary)] hover:bg-[var(--accent-primary-glow)] transition-all shadow-lg">
+                           <Github size={18} />
+                        </a>
+                        <a href="#" className="p-2.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-primary)] hover:bg-[var(--accent-primary-glow)] transition-all shadow-lg">
+                           <Linkedin size={18} />
+                        </a>
+                     </div>
+                  </div>
+
+                  {/* Links Column 1 */}
+                  <div className="space-y-6">
+                     <h4 className="text-[var(--text-primary)] font-semibold tracking-wider text-sm uppercase">Platform</h4>
+                     <ul className="space-y-4">
+                        {["Features", "Dashboard", "Workflow", "Integrations"].map((link) => (
+                           <li key={link}>
+                              <a
+                                 href={`#${link.toLowerCase()}`}
+                                 className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] hover:translate-x-1 inline-block transition-all duration-200"
+                              >
+                                 {link}
+                              </a>
+                           </li>
+                        ))}
+                     </ul>
+                  </div>
+
+                  {/* Links Column 2 */}
+                  <div className="space-y-6">
+                     <h4 className="text-[var(--text-primary)] font-semibold tracking-wider text-sm uppercase">Company</h4>
+                     <ul className="space-y-4">
+                        {["About", "Contact", "Privacy", "Terms"].map((link) => (
+                           <li key={link}>
+                              <a
+                                 href={`#${link.toLowerCase()}`}
+                                 className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] hover:translate-x-1 inline-block transition-all duration-200"
+                              >
+                                 {link}
+                              </a>
+                           </li>
+                        ))}
+                     </ul>
+                  </div>
+               </div>
+
+               {/* Bottom Bar */}
+               <div className="mt-16 pt-8 border-t border-[var(--bg-border)] flex flex-col md:flex-row items-center justify-between gap-4">
+                  <p className="text-sm text-[var(--text-tertiary)]">
+                     © {new Date().getFullYear()} Rosey. All rights reserved.
+                  </p>
+            
+               </div>
             </div>
-         </div>
-
-         {/* Row 2 */}
-         <div
-            style={{
-               display: "flex",
-               justifyContent: "space-between",
-               padding: "0 4rem 1.5rem",
-               fontSize: "0.8125rem",
-               color: "var(--text-tertiary)",
-            }}
-         >
-            <span>© 2026 Rosey. All rights reserved.</span>
-            <span>Built with Next.js · Powered by AI</span>
-         </div>
-      </footer>
+         </footer>
+      </div>
    );
 }

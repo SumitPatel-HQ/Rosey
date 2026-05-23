@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import "gsap/ScrollTrigger"; // registers ScrollTrigger plugin, used via gsap context
+import useIsomorphicLayoutEffect from "@/hooks/useIsomorphicLayoutEffect";
+import { useBoot } from "@/providers/BootProvider";
 
-if (typeof window !== "undefined") {
-   gsap.registerPlugin(ScrollTrigger);
-}
+// ScrollTrigger registration is handled once in GSAPProvider.
 
 const kpis = [
    { label: "Emails Sent", value: "247", color: "var(--accent-primary)" },
@@ -23,62 +23,61 @@ const leads = [
 
 export default function DashboardShowcase() {
    const sectionRef = useRef<HTMLElement>(null);
+   const { isBooted } = useBoot();
 
-   useEffect(() => {
-      gsap.registerPlugin(ScrollTrigger);
+   useIsomorphicLayoutEffect(() => {
+      if (!isBooted) return;
       const ctx = gsap.context(() => {
+         // 1. Cinematic Card Reveal (Long-tail easing, reduced vertical travel)
          const cards = sectionRef.current?.querySelectorAll(".dash-card");
          if (cards) {
             gsap.from(cards, {
                opacity: 0,
-               y: 60,
-               duration: 0.8,
-               ease: "power3.out",
-               stagger: 0.15,
+               y: 40, // Subdued movement
+               duration: 1.6,
+               ease: "expo.out",
+               stagger: 0.1, // Tighter stagger for a more cohesive group reveal
                scrollTrigger: {
                   trigger: sectionRef.current,
-                  start: "top 70%",
+                  start: "top 75%", // slightly earlier
                   toggleActions: "play none none none",
                },
             });
          }
+
+         // 2. Ambient Scroll Parallax
+         // Keeps the section feeling alive rather than statically pinned
+         gsap.to(sectionRef.current, {
+            backgroundPosition: "0% 20%",
+            ease: "none",
+            scrollTrigger: {
+               trigger: sectionRef.current,
+               start: "top bottom",
+               end: "bottom top",
+               scrub: true,
+            },
+         });
       }, sectionRef);
 
       return () => ctx.revert();
-   }, []);
+   }, [isBooted]);
 
-   const cardStyle: React.CSSProperties = {
-      background: "var(--bg-card)",
-      border: "1px solid var(--bg-border)",
-      borderRadius: "20px",
-      padding: "1.75rem",
-      transition: "box-shadow 300ms ease",
-   };
+   const cardClass = "bg-[var(--bg-card)] border border-[var(--bg-border)] rounded-[20px] p-7 transition-shadow duration-300 ease-in-out";
 
    return (
       <section
          ref={sectionRef}
          id="dashboard"
-         style={{
-            minHeight: "100vh",
-            background: "var(--bg-base)",
-            padding: "6rem 4rem",
-         }}
+         className="min-h-screen bg-[var(--bg-base)] px-16 py-24"
       >
          {/* Header */}
-         <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <span className="section-label" style={{ marginBottom: "1rem", display: "inline-flex" }}>
+         <div className="text-center mb-16">
+            <span className="section-label inline-flex mb-4">
                Live Intelligence
             </span>
             <h2
-               style={{
-                  fontFamily: "var(--font-heading)",
-                  fontSize: "clamp(2rem, 4vw, 3rem)",
-                  color: "var(--text-primary)",
-                  letterSpacing: "-0.03em",
-                  marginTop: "1rem",
-                  lineHeight: 1.15,
-               }}
+               className="text-[clamp(2rem,4vw,3rem)] text-[var(--text-primary)] tracking-[-0.03em] mt-4 leading-[1.15] font-[family-name:var(--font-heading)]"
+               style={{ fontFamily: "var(--font-heading)" }}
             >
                The control room for every
                <br />
@@ -87,74 +86,41 @@ export default function DashboardShowcase() {
          </div>
 
          {/* Cards grid */}
-         <div
-            style={{
-               display: "grid",
-               gridTemplateColumns: "1fr 1fr",
-               gridTemplateRows: "auto auto",
-               gap: "1.5rem",
-               maxWidth: "900px",
-               margin: "0 auto",
-            }}
-         >
+         <div className="grid grid-cols-2 auto-rows-auto gap-6 max-w-[900px] mx-auto">
             {/* Card 1 — Campaign Overview (wide, spans 2 cols) */}
             <div
-               className="dash-card"
-               style={{ ...cardStyle, gridColumn: "1 / -1" }}
+               className={`dash-card col-span-full ${cardClass}`}
                onMouseEnter={(e) =>
                   (e.currentTarget.style.boxShadow = "0 0 40px var(--accent-primary-glow)")
                }
                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
             >
-               <div
-                  style={{
-                     fontSize: "0.75rem",
-                     color: "var(--text-tertiary)",
-                     marginBottom: "1.25rem",
-                     letterSpacing: "0.05em",
-                  }}
-               >
+               <div className="text-xs text-[var(--text-tertiary)] mb-5 tracking-[0.05em]">
                   Product Overview · my-b2b-saas
                </div>
-               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.25rem" }}>
+               <div className="grid grid-cols-4 gap-5">
                   {kpis.map((kpi) => (
                      <div key={kpi.label}>
                         <div
-                           style={{
-                              fontFamily: "var(--font-heading)",
-                              fontSize: "1.75rem",
-                              fontWeight: 700,
-                              color: kpi.color,
-                              lineHeight: 1.2,
-                           }}
+                           className="text-[1.75rem] font-bold leading-[1.2] font-[family-name:var(--font-heading)]"
+                           style={{ color: kpi.color, fontFamily: "var(--font-heading)" }}
                         >
                            {kpi.value}
                         </div>
-                        <div
-                           style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "0.25rem" }}
-                        >
+                        <div className="text-xs text-[var(--text-tertiary)] mt-1">
                            {kpi.label}
                         </div>
                      </div>
                   ))}
                </div>
                {/* Sparkline bars */}
-               <div
-                  style={{
-                     display: "flex",
-                     alignItems: "flex-end",
-                     gap: "3px",
-                     height: "40px",
-                     marginTop: "1.25rem",
-                  }}
-               >
+               <div className="flex items-end gap-[3px] h-10 mt-5">
                   {[30, 45, 35, 55, 70, 50, 65, 80, 60, 75, 85, 70].map((h, i) => (
                      <div
                         key={i}
+                        className="flex-1 rounded-[2px]"
                         style={{
-                           flex: 1,
                            height: `${h}%`,
-                           borderRadius: "2px",
                            background: `linear-gradient(to top, var(--accent-primary-dim), var(--accent-primary))`,
                            opacity: 0.6 + (h / 100) * 0.4,
                         }}
@@ -165,27 +131,19 @@ export default function DashboardShowcase() {
 
             {/* Card 2 — Campaign Health Score */}
             <div
-               className="dash-card"
-               style={cardStyle}
+               className={`dash-card ${cardClass}`}
                onMouseEnter={(e) =>
                   (e.currentTarget.style.boxShadow = "0 0 40px var(--accent-primary-glow)")
                }
                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
             >
-               <div
-                  style={{
-                     fontSize: "0.75rem",
-                     color: "var(--text-tertiary)",
-                     marginBottom: "1.25rem",
-                     letterSpacing: "0.05em",
-                  }}
-               >
+               <div className="text-xs text-[var(--text-tertiary)] mb-5 tracking-[0.05em]">
                   Campaign Health Score
                </div>
                {/* Arc gauge */}
-               <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
-                  <div style={{ position: "relative", width: "120px", height: "120px" }}>
-                     <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }}>
+               <div className="flex justify-center mb-4">
+                  <div className="relative w-[120px] h-[120px]">
+                     <svg width="120" height="120" viewBox="0 0 120 120" className="-rotate-90">
                         <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-elevated)" strokeWidth="8" />
                         <circle
                            cx="60"
@@ -199,123 +157,62 @@ export default function DashboardShowcase() {
                            strokeLinecap="round"
                         />
                      </svg>
-                     <div
-                        style={{
-                           position: "absolute",
-                           inset: 0,
-                           display: "flex",
-                           alignItems: "center",
-                           justifyContent: "center",
-                           fontFamily: "var(--font-heading)",
-                           fontSize: "1.5rem",
-                           fontWeight: 700,
-                           color: "var(--accent-primary)",
-                        }}
-                     >
+                     <div className="absolute inset-0 flex items-center justify-center text-[1.5rem] font-bold text-[var(--accent-primary)] font-[family-name:var(--font-heading)]" style={{ fontFamily: "var(--font-heading)" }}>
                         78
                      </div>
                   </div>
                </div>
-               <p
-                  style={{
-                     fontSize: "0.8rem",
-                     color: "var(--text-secondary)",
-                     fontStyle: "italic",
-                     textAlign: "center",
-                     lineHeight: 1.5,
-                  }}
-               >
+               <p className="text-[0.8rem] text-[var(--text-secondary)] italic text-center leading-[1.5]">
                   Open rate trending up 6% this week. Subject line changes working.
                </p>
             </div>
 
             {/* Card 3 — Human Handoff Queue */}
             <div
-               className="dash-card"
-               style={cardStyle}
+               className={`dash-card ${cardClass}`}
                onMouseEnter={(e) =>
                   (e.currentTarget.style.boxShadow = "0 0 40px var(--accent-primary-glow)")
                }
                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
             >
-               <div
-                  style={{
-                     fontSize: "0.75rem",
-                     color: "var(--text-tertiary)",
-                     marginBottom: "1.25rem",
-                     letterSpacing: "0.05em",
-                  }}
-               >
+               <div className="text-xs text-[var(--text-tertiary)] mb-5 tracking-[0.05em]">
                   Human Handoff Queue
                </div>
-               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+               <div className="flex flex-col gap-3">
                   {leads.map((lead) => (
                      <div
                         key={lead.name}
-                        style={{
-                           display: "flex",
-                           alignItems: "center",
-                           gap: "0.75rem",
-                           padding: "0.6rem 0.75rem",
-                           borderRadius: "10px",
-                           background: "var(--bg-elevated)",
-                        }}
+                        className="flex items-center gap-3 px-3 py-[0.6rem] rounded-[10px] bg-[var(--bg-elevated)]"
                      >
                         {/* Avatar */}
-                        <div
-                           style={{
-                              width: "32px",
-                              height: "32px",
-                              borderRadius: "50%",
-                              background: "var(--bg-border)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "0.65rem",
-                              fontWeight: 600,
-                              color: "var(--text-secondary)",
-                              flexShrink: 0,
-                           }}
-                        >
+                        <div className="w-8 h-8 rounded-full bg-[var(--bg-border)] flex items-center justify-center text-[0.65rem] font-semibold text-[var(--text-secondary)] shrink-0">
                            {lead.initials}
                         </div>
                         {/* Info */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                           <div
-                              style={{
-                                 fontSize: "0.8rem",
-                                 fontWeight: 500,
-                                 color: "var(--text-primary)",
-                                 lineHeight: 1.3,
-                              }}
-                           >
+                        <div className="flex-1 min-w-0">
+                           <div className="text-[0.8rem] font-medium text-[var(--text-primary)] leading-[1.3]">
                               {lead.name}
                            </div>
-                           <div style={{ fontSize: "0.7rem", color: "var(--text-tertiary)" }}>
+                           <div className="text-[0.7rem] text-[var(--text-tertiary)]">
                               {lead.company}
                            </div>
                         </div>
                         {/* Score bar */}
-                        <div style={{ width: "50px", height: "5px", borderRadius: "3px", background: "var(--bg-base)", overflow: "hidden" }}>
+                        <div className="w-[50px] h-[5px] rounded-[3px] bg-[var(--bg-base)] overflow-hidden">
                            <div
+                              className="h-full rounded-[3px]"
                               style={{
                                  width: `${lead.score}%`,
-                                 height: "100%",
-                                 borderRadius: "3px",
                                  background: "linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))",
                               }}
                            />
                         </div>
                         {/* Status */}
                         <span
+                           className="text-[0.6rem] font-semibold px-2 py-[0.15rem] rounded-[4px] whitespace-nowrap"
                            style={{
-                              fontSize: "0.6rem",
-                              fontWeight: 600,
-                              padding: "0.15rem 0.5rem",
-                              borderRadius: "4px",
                               background: lead.statusBg,
                               color: lead.statusColor,
-                              whiteSpace: "nowrap",
                            }}
                         >
                            {lead.status}
