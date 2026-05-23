@@ -25,12 +25,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetch("/api/products")
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) {
+          throw new Error("Failed to load products");
+        }
+        return r.json();
+      })
       .then((data) => {
-        setProducts(data);
+        setProducts(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setProducts([]);
+        setLoading(false);
+      });
   }, []);
 
   return (
