@@ -18,8 +18,8 @@ import type { Lead } from "@/types";
 import type { EnrichedLeadData } from "@/types";
 
 const openai = new OpenAI({
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-  baseURL: process.env.AZURE_OPENAI_BASE_URL,
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
 const JINA_BASE = "https://r.jina.ai/";
@@ -207,7 +207,7 @@ If a field cannot be determined from the data, set it to null or an empty array.
 Focus on personalization_hooks — these are the most important output.`;
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-5.3-chat",
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
     messages: [
       { role: "system", content: systemPrompt },
       {

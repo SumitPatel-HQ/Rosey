@@ -2,8 +2,8 @@ import OpenAI from "openai";
 import type { Lead, EnrichedLeadData, KnowledgeBaseItem, ThreadMessage } from "@/types";
 
 const openai = new OpenAI({
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-  baseURL: process.env.AZURE_OPENAI_BASE_URL,
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
 /**
@@ -86,7 +86,7 @@ export async function generateMessage(
     : "This is the first email in an outreach sequence.";
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-5.3-chat",
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
     messages: [
       {
         role: "system",
@@ -187,7 +187,7 @@ export async function generateAutoReply(
     .join("\n");
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-5.3-chat",
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
     messages: [
       { role: "system", content: systemPrompt },
       {
@@ -238,7 +238,7 @@ export async function generateWhatsAppMessage(
     : "Write as a reusable template. Use {{name}}, {{company}}, {{industry}} as literal placeholders.";
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-5.3-chat",
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
     messages: [
       {
         role: "system",

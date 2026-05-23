@@ -2,8 +2,8 @@ import OpenAI from "openai";
 import type { Product } from "@/types";
 
 const openai = new OpenAI({
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-  baseURL: process.env.AZURE_OPENAI_BASE_URL,
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
 const TAVILY_API_URL = "https://api.tavily.com/search";
@@ -124,7 +124,7 @@ Rules:
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.3-chat",
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: `Web search results:\n\n${searchContext}` },

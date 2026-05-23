@@ -39,7 +39,7 @@ yarn-error.log*
 .env.test
 .env.test.example
 .env.development.example
-.env.example
+
 
 
 # vercel
@@ -56,5 +56,7 @@ README.md
 AGENTS.md
 # clerk configuration (can include secrets)
 /.clerk/
+
+test-apis.js
 
 
