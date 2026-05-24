@@ -307,6 +307,7 @@ export interface ComplianceAudit {
   bounceCount: number;
   totalEmailsSent: number;
   unsubscribeRate: number;
+  bounceRate: number;
   recentUnsubscribes: Array<{
     id: string;
     email: string;
