@@ -57,8 +57,8 @@ export function ComplianceTab({ compliance }: ComplianceTabProps) {
   return (
     <div className="p-6 space-y-6">
       {/* Status banner */}
-      <Card className="border bg-muted/30">
-        <CardContent className="py-4">
+      <Card className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] py-0 gap-0">
+        <CardContent className="py-4 px-5 sm:px-6">
           <div className="flex items-center gap-3">
             {canSpamCompliant ? (
               <CheckCircle className="h-5 w-5 text-foreground" />
@@ -90,35 +90,28 @@ export function ComplianceTab({ compliance }: ComplianceTabProps) {
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((m) => (
-          <Card key={m.label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {m.label}
-              </CardTitle>
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-lg ${m.color}`}
-              >
-                <m.icon className="h-4 w-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{m.value}</p>
-            </CardContent>
+          <Card key={m.label} className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] flex flex-col justify-between hover:bg-accent dark:hover:bg-white/[0.02] transition-colors group p-5 sm:p-6 gap-0">
+            <div className="flex items-center gap-3 mb-3">
+              <m.icon className={`h-6 w-6 shrink-0 ${m.color.split(' ')[0]}`} />
+              <p className="text-3xl font-bold tracking-tight truncate">{m.value}</p>
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">{m.label}</p>
           </Card>
         ))}
       </div>
 
       {/* Rates */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
+        {/* Unsubscribe Rate */}
+        <Card className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-0 gap-0">
+          <CardHeader className="p-5 sm:p-6 pb-2 sm:pb-3">
             <CardTitle className="text-sm font-medium">
               Unsubscribe Rate
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
+          <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
+            <div className="flex items-end justify-between mb-4">
+              <div>
                 <p className="text-3xl font-bold">
                   {(compliance.unsubscribeRate * 100).toFixed(2)}%
                 </p>
@@ -127,49 +120,65 @@ export function ComplianceTab({ compliance }: ComplianceTabProps) {
                 </p>
               </div>
               <div className="w-32">
-                <RateBar
-                  value={compliance.unsubscribeRate * 100}
-                  max={1}
-                  threshold={0.5}
-                />
+                <div className="h-3 bg-muted rounded-full overflow-hidden relative">
+                  <div
+                    className="absolute left-0 top-0 h-full bg-red-400"
+                    style={{
+                      width: `${Math.min(
+                        (compliance.unsubscribeRate * 100) / 1,
+                        100
+                      )}%`,
+                    }}
+                  />
+                  {/* Threshold marker at 0.5% */}
+                  <div className="absolute left-[50%] top-0 bottom-0 w-px bg-foreground/30 z-10" />
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                  <span>0%</span>
+                  <span>Threshold 0.5%</span>
+                  <span>1%</span>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">
-              Bounce Rate
-            </CardTitle>
+        {/* Bounce Rate */}
+        <Card className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-0 gap-0">
+          <CardHeader className="p-5 sm:p-6 pb-2 sm:pb-3">
+            <CardTitle className="text-sm font-medium">Bounce Rate</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
+          <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
+            <div className="flex items-end justify-between mb-4">
+              <div>
                 <p className="text-3xl font-bold">
-                  {compliance.totalEmailsSent > 0
-                    ? (
-                        (compliance.bounceCount / compliance.totalEmailsSent) *
-                        100
-                      ).toFixed(2)
-                    : "0.00"}
-                  %
+                  {(compliance.bounceRate * 100).toFixed(2)}%
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Target: &lt; 2%
                 </p>
               </div>
               <div className="w-32">
-                <RateBar
-                  value={
-                    compliance.totalEmailsSent > 0
-                      ? (compliance.bounceCount / compliance.totalEmailsSent) *
+                <div className="h-3 bg-muted rounded-full overflow-hidden relative">
+                  <div
+                    className="absolute left-0 top-0 h-full transition-all"
+                    style={{
+                      width: `${Math.min(
+                        (compliance.bounceRate * 100) / 5,
                         100
-                      : 0
-                  }
-                  max={5}
-                  threshold={2}
-                />
+                      )}%`,
+                      backgroundColor:
+                        compliance.bounceRate > 0.02 ? "#f87171" : "#34d399",
+                    }}
+                  />
+                  {/* Threshold marker at 2% */}
+                  <div className="absolute left-[40%] top-0 bottom-0 w-px bg-foreground/30 z-10" />
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                  <span>0%</span>
+                  <span>Threshold 2%</span>
+                  <span>5%</span>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -178,14 +187,14 @@ export function ComplianceTab({ compliance }: ComplianceTabProps) {
 
       {/* Recent unsubscribes */}
       {compliance.recentUnsubscribes.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-0 gap-0">
+          <CardHeader className="p-5 sm:p-6 pb-2 sm:pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Recent Unsubscribes
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -217,61 +226,6 @@ export function ComplianceTab({ compliance }: ComplianceTabProps) {
           </CardContent>
         </Card>
       )}
-    </div>
-  );
-}
-
-// ── Rate bar component ──────────────────────────────────────────────────────
-
-function RateBar({
-  value,
-  max,
-  threshold,
-}: {
-  value: number;
-  max: number;
-  threshold: number;
-}) {
-  const pct = Math.min((value / max) * 100, 100);
-  const thresholdPct = (threshold / max) * 100;
-  const isOver = value > threshold;
-
-  return (
-    <div className="space-y-1">
-      <div className="h-3 bg-muted rounded-full overflow-hidden relative">
-        <div
-          className="absolute inset-y-0 left-0 rounded-l-full"
-          style={{
-            width: `${thresholdPct}%`,
-            background:
-              "linear-gradient(90deg, rgba(16,185,129,0.32) 0%, rgba(16,185,129,0.15) 100%)",
-          }}
-        />
-        <div
-          className="absolute inset-y-0 right-0 rounded-r-full"
-          style={{
-            width: `${100 - thresholdPct}%`,
-            background:
-              "linear-gradient(90deg, rgba(239,68,68,0.08) 0%, rgba(239,68,68,0.22) 100%)",
-          }}
-        />
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${isOver ? "bg-red-400" : "bg-emerald-400"}`}
-          style={{ width: `${pct}%` }}
-        />
-        {/* Threshold marker */}
-        <div
-          className="absolute top-0 bottom-0 w-0.5 bg-foreground/30"
-          style={{ left: `${thresholdPct}%` }}
-        />
-      </div>
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>0%</span>
-        <span className="text-[9px] text-muted-foreground/80">
-          Threshold {threshold}%
-        </span>
-        <span>{max}%</span>
-      </div>
     </div>
   );
 }

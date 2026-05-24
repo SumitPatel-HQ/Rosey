@@ -63,8 +63,8 @@ export function DeliverabilityTab({
   return (
     <div className="p-6 space-y-6">
       {/* Domain health banner */}
-      <Card className="border bg-muted/30">
-        <CardContent className="py-4">
+      <Card className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] py-0 gap-0">
+        <CardContent className="py-4 px-5 sm:px-6">
           <div className="flex items-center gap-3">
             {isHealthy ? (
               <CheckCircle className="h-5 w-5 text-foreground" />
@@ -121,8 +121,8 @@ export function DeliverabilityTab({
 
       {/* Warmup progress */}
       {warmup && (
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-0 gap-0">
+          <CardHeader className="p-5 sm:p-6 pb-2 sm:pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Zap className="h-4 w-4 text-muted-foreground" />
@@ -133,7 +133,7 @@ export function DeliverabilityTab({
               </Badge>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
             {warmup.enabled && warmup.schedule ? (
               <div className="space-y-4">
                 {/* Progress bar */}
@@ -191,13 +191,13 @@ export function DeliverabilityTab({
       )}
 
       {/* Bounce breakdown */}
-      <Card>
-        <CardHeader className="pb-3">
+      <Card className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-0 gap-0">
+        <CardHeader className="p-5 sm:p-6 pb-2 sm:pb-3">
           <CardTitle className="text-sm font-medium">
             Bounce Breakdown
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-5 sm:p-6 pt-0 sm:pt-0">
           <BounceBreakdownChart deliverability={deliverability} />
         </CardContent>
       </Card>
@@ -219,20 +219,12 @@ function MetricCard({
   color: string;
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {label}
-        </CardTitle>
-        <div
-          className={`flex h-8 w-8 items-center justify-center rounded-lg ${color}`}
-        >
-          <Icon className="h-4 w-4" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-2xl font-bold">{value}</p>
-      </CardContent>
+    <Card className="relative rounded-2xl border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] flex flex-col justify-between hover:bg-accent dark:hover:bg-white/[0.02] transition-colors group p-5 sm:p-6 gap-0">
+      <div className="flex items-center gap-3 mb-3">
+        <Icon className={`h-6 w-6 shrink-0 ${color.split(' ')[0]}`} />
+        <p className="text-3xl font-bold tracking-tight truncate">{value}</p>
+      </div>
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
     </Card>
   );
 }

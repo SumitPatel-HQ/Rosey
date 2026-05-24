@@ -128,8 +128,9 @@ export default function CampaignLeadsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[40vh] text-muted-foreground">
-        Loading...
+      <div className="flex h-[80vh] items-center justify-center gap-3 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" style={{ animation: "spin 1s linear infinite" }} />
+        <p className="text-base">Loading...</p>
       </div>
     );
   }

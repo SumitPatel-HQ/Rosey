@@ -398,15 +398,15 @@ export function LeadsPanel({ campaignId, productId }: LeadsPanelProps) {
   }
 
   return (
-    <div className="p-6 overflow-y-auto h-full">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-6 overflow-y-auto h-full">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Campaign Leads</h1>
           <p className="text-muted-foreground text-sm mt-1">
             {campaignLeads.length} lead{campaignLeads.length !== 1 ? "s" : ""} assigned
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={handleProcessNow} disabled={processing}>
             {processing
               ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -496,8 +496,8 @@ export function LeadsPanel({ campaignId, productId }: LeadsPanelProps) {
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-x-auto w-full">
+        <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow>
               <TableHead>Lead</TableHead>

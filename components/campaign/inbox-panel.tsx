@@ -15,6 +15,7 @@ import {
   Mail,
   MessageSquare,
   ChevronRight,
+  ChevronLeft,
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -393,7 +394,7 @@ export function InboxPanel({ campaignId }: InboxPanelProps) {
   return (
     <div className="flex h-full overflow-hidden">
       {/* ── Left: lead list ── */}
-      <div className="w-72 border-r shrink-0 flex flex-col overflow-hidden">
+      <div className={cn("w-full md:w-72 border-r shrink-0 flex-col overflow-hidden", selectedLead ? "hidden md:flex" : "flex")}>
         <div className="flex items-center justify-between px-3 py-2.5 border-b bg-muted/30 shrink-0">
           <span className="text-sm font-semibold flex items-center gap-1.5">
             <MessageSquare className="h-4 w-4" />
@@ -453,7 +454,7 @@ export function InboxPanel({ campaignId }: InboxPanelProps) {
       </div>
 
       {/* ── Right: thread + compose ── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={cn("flex-1 flex-col overflow-hidden", !selectedLead ? "hidden md:flex" : "flex")}>
         {!selectedLead ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
             <MessageSquare className="h-10 w-10 opacity-30" />
@@ -462,7 +463,10 @@ export function InboxPanel({ campaignId }: InboxPanelProps) {
         ) : (
           <>
             {/* Thread header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b bg-muted/20 shrink-0">
+            <div className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-3 border-b bg-muted/20 shrink-0">
+              <Button variant="ghost" size="icon" className="md:hidden h-8 w-8 shrink-0 mr-1" onClick={() => setSelectedId(null)}>
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">
                   {selectedLead.lead?.name ?? "Unknown"}

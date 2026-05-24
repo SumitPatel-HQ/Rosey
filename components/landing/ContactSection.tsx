@@ -86,7 +86,7 @@ export default function ContactSection() {
          {/* Email Form */}
          <form
             action="/dashboard"
-            className="flex gap-3 w-full max-w-[480px] relative"
+            className="flex flex-col sm:flex-row gap-3 w-full max-w-[480px] relative"
          >
             <input
                type="email"

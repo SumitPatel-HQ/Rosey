@@ -325,12 +325,18 @@ export async function getThreadMessages(
     if (gErr.code === 403 || gErr.status === 403) {
       // Scope only allows metadata — fetch without bodies
       metadataOnly = true;
-      res = await gmail.users.threads.get({
-        userId: "me",
-        id: threadId,
-        format: "metadata",
-        metadataHeaders: ["From", "To", "Subject", "Date"],
-      });
+      try {
+        res = await gmail.users.threads.get({
+          userId: "me",
+          id: threadId,
+          format: "metadata",
+          metadataHeaders: ["From", "To", "Subject", "Date"],
+        });
+      } catch {
+        // Even metadata scope is insufficient - return empty messages
+        console.warn(`[Gmail] Insufficient scope to read thread ${threadId}. Returning empty messages.`);
+        return [];
+      }
     } else {
       throw err;
     }

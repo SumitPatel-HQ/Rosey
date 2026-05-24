@@ -107,7 +107,7 @@ function BuilderInner() {
         loadWorkflow(data.workflow_json?.nodes || [], data.workflow_json?.edges || []);
         loadedRef.current = true;
       })
-       .catch(() => toast.error("Failed to load campaign"));
+      .catch(() => toast.error("Failed to load campaign"));
   }, [campaignId, loadWorkflow]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -255,12 +255,6 @@ function BuilderInner() {
     );
   }
 
-  const statusColors: Record<string, string> = {
-    draft: "bg-gray-100 text-gray-700",
-    active: "bg-green-100 text-green-700",
-    completed: "bg-blue-100 text-blue-700",
-  };
-
   function onDragStart(e: React.DragEvent, nodeType: string) {
     e.dataTransfer.setData("application/reactflow", nodeType);
     e.dataTransfer.effectAllowed = "move";
@@ -269,105 +263,116 @@ function BuilderInner() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b bg-background shrink-0">
-        <div className="flex items-center gap-3">
-          <h2 className="font-semibold">{campaign.name}</h2>
-          <Badge
-            className={`text-xs ${statusColors[campaign.status] || ""}`}
-            variant="secondary"
+      <div className="flex items-center justify-between px-3 md:px-4 py-2 border-b bg-background shrink-0 gap-2">
+        {/* Left side: campaign name + tools */}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden h-8 w-8 shrink-0 -ml-1 text-muted-foreground hover:text-foreground"
+            onClick={() => router.push(`/${productId}/campaigns`)}
           >
-            {campaign.status}
-          </Badge>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <h2 className="font-semibold text-sm md:text-base truncate">{campaign.name}</h2>
         </div>
-        <div className="flex items-center gap-2">
-          {view === "workflow" && (
-            <>
-              {/* Email rate limit */}
-            <div className="flex items-center gap-1.5 border rounded-md px-2 py-1 bg-muted/40">
-              <Gauge className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <Input
-                type="number"
-                min={1}
-                placeholder="∞"
-                value={rateLimitValue}
-                onChange={(e) => setRateLimitValue(e.target.value)}
-                onBlur={() => handleRateLimitSave(rateLimitValue)}
-                onKeyDown={(e) => e.key === "Enter" && handleRateLimitSave(rateLimitValue)}
-                className="h-6 w-16 border-0 bg-transparent text-xs px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-              <span className="text-xs text-muted-foreground whitespace-nowrap">emails/hr</span>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save
-            </Button>
-            {(campaign.status === "draft" || campaign.status === "completed") && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button size="sm">
-                    <Play className="h-4 w-4 mr-2" />
-                    Run
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Activate Campaign?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will start processing the workflow for all assigned leads. Make sure
-                      you have assigned leads before activating. The workflow will be auto-saved.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleActivate} disabled={activating}>
-                      {activating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Yes, Activate
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            {campaign.status === "active" && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button size="sm" variant="destructive">
-                    <StopCircle className="h-4 w-4 mr-2" />
-                    Stop
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Stop Campaign?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will complete the campaign. Leads currently in progress will be stopped.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleStop} disabled={stopping}>
-                      {stopping && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Yes, Stop
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            </>
-          )}
-          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={refreshing} title="Refresh all data">
+        {/* Right side: action buttons */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title="Refresh all data"
+          >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </Button>
+          {view === "workflow" && (
+            <>
+              {/* Email rate limit — hidden on very small screens */}
+              <div className="hidden sm:flex items-center gap-1.5 border rounded-md px-2 py-1 bg-muted/40">
+                <Gauge className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="∞"
+                  value={rateLimitValue}
+                  onChange={(e) => setRateLimitValue(e.target.value)}
+                  onBlur={() => handleRateLimitSave(rateLimitValue)}
+                  onKeyDown={(e) => e.key === "Enter" && handleRateLimitSave(rateLimitValue)}
+                  className="h-6 w-14 border-0 bg-transparent text-xs px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <span className="text-xs text-muted-foreground whitespace-nowrap">emails/hr</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-1.5" />
+                )}
+                Save
+              </Button>
+              {(campaign.status === "draft" || campaign.status === "completed") && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm">
+                      <Play className="h-4 w-4 mr-1.5" />
+                      Run
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Activate Campaign?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will start processing the workflow for all assigned leads. Make sure
+                        you have assigned leads before activating. The workflow will be auto-saved.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleActivate} disabled={activating}>
+                        {activating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        Yes, Activate
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              {campaign.status === "active" && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="destructive">
+                      <StopCircle className="h-4 w-4 mr-1.5" />
+                      Stop
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Stop Campaign?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will complete the campaign. Leads currently in progress will be stopped.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleStop} disabled={stopping}>
+                        {stopping && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        Yes, Stop
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </>
+          )}
         </div>
       </div>
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar */}
-        <div className="w-52 border-r bg-muted/30 p-3 shrink-0 flex flex-col gap-1">
+        {/* Left sidebar — hidden on mobile, shown on md+ */}
+        <div className="hidden md:flex w-52 border-r bg-muted/30 p-3 shrink-0 flex-col gap-1">
           <Button
             variant="ghost"
             size="sm"
@@ -442,22 +447,22 @@ function BuilderInner() {
           {view === "workflow" && (
             <div className="h-full w-full">
               <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              nodeTypes={nodeTypes}
-              fitView
-              deleteKeyCode={["Backspace", "Delete"]}
-              className="bg-background"
-            >
-              <Controls />
-              <MiniMap pannable zoomable />
-              <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
-            </ReactFlow>
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onDrop={onDrop}
+                onDragOver={onDragOver}
+                nodeTypes={nodeTypes}
+                fitView
+                deleteKeyCode={["Backspace", "Delete"]}
+                className="bg-background"
+              >
+                <Controls />
+                <MiniMap pannable zoomable className="!hidden sm:!block" />
+                <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+              </ReactFlow>
             </div>
           )}
           {view === "leads" && (
@@ -473,7 +478,7 @@ function BuilderInner() {
             <InboxPanel key={refreshKey} campaignId={campaignId} productId={productId} />
           )}
           {view === "settings" && campaign && (
-            <div className="h-full overflow-y-auto p-6">
+            <div className="h-full overflow-y-auto p-4 md:p-6">
               <div className="max-w-lg space-y-6">
                 <div>
                   <h2 className="text-lg font-semibold">Campaign Settings</h2>
@@ -546,6 +551,37 @@ function BuilderInner() {
           )}
         </div>
       </div>
+
+      {/* Mobile bottom tab bar — icon-only, visible on mobile only */}
+      <nav className="md:hidden flex items-center justify-around border-t bg-background shrink-0 h-14 px-2">
+        {sidebarNav.map(({ view: v, icon: Icon, label }) => (
+          <Button
+            key={v}
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "flex flex-col items-center gap-0.5 h-auto py-1.5 px-2",
+              view === v ? "text-primary" : "text-muted-foreground"
+            )}
+            onClick={() => setView(v)}
+          >
+            <Icon className="h-5 w-5" />
+            <span className="text-[10px]">{label.split(" ")[0]}</span>
+          </Button>
+        ))}
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "flex flex-col items-center gap-0.5 h-auto py-1.5 px-2",
+            view === "settings" ? "text-primary" : "text-muted-foreground"
+          )}
+          onClick={() => setView("settings")}
+        >
+          <Settings className="h-5 w-5" />
+          <span className="text-[10px]">Settings</span>
+        </Button>
+      </nav>
     </div>
   );
 }

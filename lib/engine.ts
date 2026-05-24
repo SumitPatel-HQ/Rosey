@@ -255,13 +255,28 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
         subject = threadSubject || interpolate(cachedSubject);
         htmlBody = interpolate(cachedBody);
       } else {
-        // Cache miss — generate once, then persist it back into workflow_json
-        const message = await generateMessage(prompt, null, context.productDescription, {
-          senderEmail: process.env.GMAIL_USER_EMAIL,
-          isFollowUp: !!threadId,
-          enrichedData: context.lead.enriched_data ?? null,
-          knowledgeBase: context.knowledgeBaseItems,
-        });
+        // Cache miss - generate once, then persist it back into workflow_json
+        let message;
+        try {
+          console.log(`[AI] Generating email for ${context.lead.email}...`);
+          message = await generateMessage(prompt, null, context.productDescription, {
+            senderEmail: process.env.GMAIL_USER_EMAIL,
+            isFollowUp: !!threadId,
+            enrichedData: context.lead.enriched_data ?? null,
+            knowledgeBase: context.knowledgeBaseItems,
+          });
+          console.log(`[AI] ✅ SUCCESS - Email generated for ${context.lead.email}`);
+        } catch (aiError) {
+          console.error(`[AI] ❌ FAILED - Could not generate email for ${context.lead.email}:`, aiError);
+          console.warn(`[AI] Using fallback template for ${context.lead.email}`);
+          // Fallback template when AI fails
+          message = {
+            subject: context.productDescription 
+              ? `Quick question about ${context.productDescription}`
+              : "Quick question about your business",
+            body: "Hi {{name}},\n\nI came across {{company}} and was impressed by what you're doing in the {{industry}} space.\n\nI wanted to reach out because I think we could help {{company}} achieve even better results.\n\nWould you be open to a brief conversation?\n\nBest regards",
+          };
+        }
         node.data.cached_subject = message.subject;
         node.data.cached_body = message.body;
 
@@ -282,13 +297,27 @@ const campaignHandlers: WorkflowHandlers<CampaignExecutionContext> = {
         htmlBody = interpolate(message.body);
       }
     } else {
-      // Personalized — unique email per lead
-      const message = await generateMessage(prompt, context.lead, context.productDescription, {
-        senderEmail: process.env.GMAIL_USER_EMAIL,
-        isFollowUp: !!threadId,
-        enrichedData: context.lead.enriched_data ?? null,
-        knowledgeBase: context.knowledgeBaseItems,
-      });
+      // Personalized - unique email per lead
+      let message;
+      try {
+        console.log(`[AI] Generating personalized email for ${context.lead.email}...`);
+        message = await generateMessage(prompt, context.lead, context.productDescription, {
+          senderEmail: process.env.GMAIL_USER_EMAIL,
+          isFollowUp: !!threadId,
+          enrichedData: context.lead.enriched_data ?? null,
+          knowledgeBase: context.knowledgeBaseItems,
+        });
+        console.log(`[AI] ✅ SUCCESS - Personalized email generated for ${context.lead.email}`);
+      } catch (aiError) {
+        console.error(`[AI] ❌ FAILED - Could not generate personalized email for ${context.lead.email}:`, aiError);
+        console.warn(`[AI] Using fallback template for ${context.lead.email}`);
+        // Fallback template when AI fails
+        const product = context.productDescription || "our solution";
+        message = {
+          subject: `Quick question about ${product}`,
+          body: `Hi ${context.lead.name},\n\nI came across ${context.lead.company || "your company"} and was impressed by what you're doing in the ${context.lead.industry || "your"} space.\n\nI wanted to reach out because I think we could help you achieve even better results.\n\nWould you be open to a brief conversation?\n\nBest regards`,
+        };
+      }
       subject = threadSubject || message.subject;
       htmlBody = message.body;
     }

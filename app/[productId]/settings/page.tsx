@@ -285,7 +285,6 @@ export default function ProductSettingsPage() {
   const params = useParams();
   const productId = params.productId as string;
 
-  const [product, setProduct] = useState<ProductData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Details form
@@ -321,7 +320,6 @@ export default function ProductSettingsPage() {
     fetch(`/api/products/${productId}`)
       .then((r) => r.json())
       .then((data: ProductData) => {
-        setProduct(data);
         setName(data.name ?? "");
         setDescription(data.description ?? "");
         setKbItems(data.knowledge_base?.items ?? []);
@@ -340,7 +338,8 @@ export default function ProductSettingsPage() {
       });
       if (!res.ok) throw new Error();
       const updated: ProductData = await res.json();
-      setProduct((p) => p ? { ...p, name: updated.name, description: updated.description } : p);
+      setName(updated.name);
+      setDescription(updated.description ?? "");
       setDetailsDirty(false);
       toast.success("Product details saved");
     } catch {

@@ -56,15 +56,15 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Products</h1>
             <p className="text-muted-foreground mt-1">
               Select a product to manage its leads and campaigns.
             </p>
           </div>
-          <Button onClick={() => router.push("/products/new")}>
+          <Button onClick={() => router.push("/products/new")} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Product
           </Button>

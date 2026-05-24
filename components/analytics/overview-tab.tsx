@@ -1,809 +1,438 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Users,
-  Mail,
-  Reply,
-  TrendingUp,
-  CheckCircle,
-  Clock,
-  ArrowRight,
-  Activity,
-} from "lucide-react";
+import { Users, Mail, Reply, TrendingUp, CheckCircle, Clock, ArrowRight, Activity, Zap } from "lucide-react";
 import type { EnrichedAnalytics, ActivityEvent } from "@/types";
 import {
-  ComposedChart,
-  LineChart,
-  Bar,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
+  AreaChart, Area, ComposedChart, Bar, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
-import { Badge } from "@/components/ui/badge";
 
-const CHART_TOOLTIP_STYLE = {
-  borderRadius: "10px",
-  fontSize: "12px",
-  border: "1px solid hsl(var(--border))",
-  backgroundColor: "hsl(var(--popover) / 0.96)",
-  color: "hsl(var(--popover-foreground))",
-  boxShadow: "0 12px 32px hsl(var(--background) / 0.45)",
+const TOOLTIP = {
+  borderRadius: "10px", fontSize: "12px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  backgroundColor: "rgba(10,10,10,0.95)",
+  color: "#e5e7eb",
+  boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
 };
 
-// ── Stat card ───────────────────────────────────────────────────────────────
+// ── Hero KPI Banner ──────────────────────────────────────────────────────────
 
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  tone,
-  subtext,
-  emphasis = "regular",
-  progress,
-  progressLabel,
-  className,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  tone: "slate" | "sky" | "emerald" | "amber";
-  subtext?: string;
-  emphasis?: "regular" | "hero";
-  progress?: number;
-  progressLabel?: string;
-  className?: string;
-}) {
-  const toneStyles = {
-    slate: {
-      rail: "bg-slate-400/70",
-      icon: "bg-slate-500/10 text-slate-700 dark:text-slate-200",
-      track: "bg-slate-500/15",
-      fill: "bg-slate-500/65",
-    },
-    sky: {
-      rail: "bg-sky-400/80",
-      icon: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-      track: "bg-sky-500/15",
-      fill: "bg-sky-500/70",
-    },
-    emerald: {
-      rail: "bg-emerald-400/80",
-      icon: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-      track: "bg-emerald-500/15",
-      fill: "bg-emerald-500/70",
-    },
-    amber: {
-      rail: "bg-amber-400/85",
-      icon: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-      track: "bg-amber-500/15",
-      fill: "bg-amber-500/75",
-    },
-  } as const;
+function HeroBanner({ analytics }: { analytics: EnrichedAnalytics }) {
+  const score = analytics.healthScore.overall;
+  const scoreColor = score >= 85 ? "#34d399" : score >= 70 ? "#22d3ee" : score >= 55 ? "#fbbf24" : "#f87171";
+  const replyRate = analytics.replyRate;
 
-  const style = toneStyles[tone];
+  const insight =
+    analytics.totalLeads === 0 ? "Load leads to begin your campaign outreach."
+    : analytics.emailsSent === 0 ? "Campaign is ready — activate to start sending."
+    : analytics.replies === 0 ? "Emails are out. First replies typically arrive within 24–48 hours."
+    : replyRate >= 15 ? `Strong ${replyRate}% reply rate — your messaging is resonating.`
+    : replyRate >= 8 ? `${replyRate}% reply rate — solid start, consider A/B testing subject lines.`
+    : `${replyRate}% reply rate — try personalizing opening lines for higher engagement.`;
 
   return (
-    <Card className={`relative overflow-hidden border-border/70 bg-card/90 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${className ?? ""}`}>
-      <div className={`absolute inset-x-0 top-0 h-1 ${style.rail}`} />
-      <CardHeader className="flex flex-row items-center justify-between pb-1 pt-4">
-        <CardTitle className="text-sm font-medium text-muted-foreground tracking-tight">
-          {label}
-        </CardTitle>
-        <div
-          className={`flex h-8 w-8 items-center justify-center rounded-xl ${style.icon}`}
-        >
-          <Icon className="h-4 w-4" />
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2 pb-4">
-        <p className={`${emphasis === "hero" ? "text-3xl" : "text-[2rem]"} font-semibold leading-none tracking-tight`}>
-          {value}
-        </p>
-        {progress !== undefined && (
-          <div className="space-y-1">
-            <div className={`h-1.5 w-full overflow-hidden rounded-full ${style.track}`}>
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${style.fill}`}
-                style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
+    <div className="relative overflow-hidden rounded-2xl bg-card shadow-sm dark:shadow-none border border-border dark:border-white/[0.03] bg-gradient-to-b from-muted/50 dark:from-white/[0.02] to-transparent p-5 sm:p-8">
+      <div className="relative flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+        {/* Score */}
+        <div className="flex items-center gap-5 shrink-0">
+          <div className="relative">
+            <svg width={88} height={88} className="-rotate-90 overflow-visible">
+              <circle cx={44} cy={44} r={38} fill="none" stroke="currentColor" className="text-muted dark:text-white/[0.03]" strokeWidth={6} />
+              <circle cx={44} cy={44} r={38} fill="none" stroke={scoreColor} strokeWidth={6}
+                strokeDasharray={2 * Math.PI * 38}
+                strokeDashoffset={2 * Math.PI * 38 * (1 - score / 100)}
+                strokeLinecap="round"
+                style={{ filter: `drop-shadow(0 0 10px ${scoreColor}40)`, transition: "stroke-dashoffset 0.8s ease" }}
               />
-            </div>
-            {progressLabel && (
-              <p className="text-[11px] text-muted-foreground">{progressLabel}</p>
-            )}
-          </div>
-        )}
-        {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
-      </CardContent>
-    </Card>
-  );
-}
-
-// ── Pipeline Funnel ─────────────────────────────────────────────────────────
-
-function PipelineFunnel({
-  pipeline,
-  total,
-}: {
-  pipeline: EnrichedAnalytics["pipeline"];
-  total: number;
-}) {
-  if (total === 0) return null;
-  const filtered = pipeline.filter((p) => p.count > 0);
-  const sumCount = filtered.reduce((acc, s) => acc + s.count, 0) || 1;
-  const stageStats = filtered.map((stage) => ({
-    ...stage,
-    pct: Math.round((stage.count / sumCount) * 100),
-  }));
-  const topStage = [...stageStats].sort((a, b) => b.count - a.count)[0];
-
-  return (
-    <Card className="relative overflow-hidden">
-      <CardHeader className="pb-2 relative">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold">Pipeline Funnel</CardTitle>
-          <span className="rounded-full border border-border/80 bg-muted/40 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-            {total} leads
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent className="relative pt-0">
-        <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
-          {/* Donut chart */}
-          <div className="relative shrink-0 mx-auto">
-            <ResponsiveContainer width={280} height={280}>
-              <PieChart>
-                <Tooltip
-                  contentStyle={CHART_TOOLTIP_STYLE}
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  formatter={(value: any, _name: any, item: any) => {
-                    const payload = item?.payload as { pct?: number } | undefined;
-                    return [`${value} leads (${payload?.pct ?? 0}%)`, item?.name ?? "Stage"];
-                  }}
-                />
-                <Pie
-                  data={stageStats}
-                  dataKey="count"
-                  nameKey="stage"
-                  innerRadius={78}
-                  outerRadius={122}
-                  paddingAngle={3}
-                  stroke="none"
-                >
-                  {stageStats.map((stage) => (
-                    <Cell key={stage.stage} fill={stage.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            {/* Center label */}
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold leading-none">{total}</span>
-              <span className="mt-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">leads</span>
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-xl font-bold leading-none tracking-tight">{score}</span>
+              <span className="text-[10px] font-semibold mt-0.5" style={{ color: scoreColor }}>{analytics.healthScore.grade}</span>
             </div>
           </div>
-
-          {/* Stage breakdown */}
-          <div className="flex-1 w-full space-y-1.5 min-w-0">
-            {stageStats.map((stage) => (
-              <div key={stage.stage} className="group flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-muted/30 transition-colors">
-                <span
-                  className="h-3 w-3 shrink-0 rounded-sm"
-                  style={{ backgroundColor: stage.color }}
-                />
-                <span className="flex-1 truncate text-sm font-medium text-foreground">{stage.stage}</span>
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="w-20 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${stage.pct}%`, backgroundColor: stage.color }}
-                    />
-                  </div>
-                  <span className="w-8 text-right text-xs text-muted-foreground">{stage.pct}%</span>
-                  <span className="w-5 text-right text-sm font-semibold tabular-nums">{stage.count}</span>
-                </div>
-              </div>
-            ))}
-            {topStage && (
-              <p className="pt-1.5 px-3 text-[11px] text-muted-foreground">
-                Top stage:{" "}
-                <span className="font-semibold text-foreground">{topStage.stage}</span>
-                {" "}·{" "}
-                <span className="font-semibold text-foreground">{topStage.count}</span> leads
-              </p>
-            )}
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Health Score</p>
+            <p className="text-3xl font-bold tabular-nums tracking-tight" style={{ color: scoreColor }}>{analytics.replyRate}%</p>
+            <p className="text-xs text-muted-foreground mt-0.5 font-medium">Reply Rate</p>
           </div>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
 
-// ── Send Velocity Chart ─────────────────────────────────────────────────────
+        {/* Divider */}
+        <div className="hidden md:block w-px h-20 bg-border dark:bg-white/[0.04]" />
+        <div className="md:hidden w-full h-px bg-border dark:bg-white/[0.04]" />
 
-function SendVelocityChart({
-  dailyVolume,
-}: {
-  dailyVolume: EnrichedAnalytics["dailyVolume"];
-}) {
-  const hasData = dailyVolume.some((d) => d.sent > 0 || d.replies > 0);
-
-  if (!hasData) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">
-            Send vs Replies (Last 3 Days)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
-            No send data yet — activate a campaign to see trends
+        {/* AI insight */}
+        <div className="flex-1 min-w-0 md:py-2">
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="h-6 w-6  flex items-center justify-center">
+              <Zap className="h-3.5 w-3.5 text-cyan-400" />
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400">AI Insight</span>
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const formatted = dailyVolume.map((d) => ({
-    ...d,
-    dateObj: new Date(d.date),
-    date: new Date(d.date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    }),
-  }));
-
-  const latest = formatted.reduce(
-    (max, d) => (d.dateObj > max ? d.dateObj : max),
-    formatted[0].dateObj
-  );
-  const recentStart = new Date(latest);
-  recentStart.setDate(recentStart.getDate() - 2);
-  const recent = formatted.filter((d) => d.dateObj >= recentStart);
-
-  const totalSent = recent.reduce((sum, day) => sum + day.sent, 0);
-  const totalReplies = recent.reduce((sum, day) => sum + day.replies, 0);
-  const rangeLabel = `${recentStart.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  })} - ${latest.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  })}`;
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">
-            Send vs Replies (Last 3 Days)
-          </CardTitle>
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-cyan-400" />
-              Sent
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              Replies
-            </span>
-          </div>
+          <p className="text-[15px] text-foreground/90 leading-relaxed max-w-2xl">{insight}</p>
         </div>
-        <p className="text-[11px] text-muted-foreground">{rangeLabel}</p>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={240}>
-          <LineChart data={recent}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis
-              dataKey="date"
-              tick={{ fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-              interval={0}
-            />
-            <YAxis
-              tick={{ fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-              width={30}
-              allowDecimals={false}
-            />
-            <Tooltip
-              contentStyle={CHART_TOOLTIP_STYLE}
-              formatter={(value, name) => [value, name === "sent" ? "Sent" : "Replies"]}
-            />
-            <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "6px" }} />
-            <Line
-              type="monotone"
-              dataKey="sent"
-              name="Sent"
-              stroke="#f59e0b"
-              strokeWidth={2}
-              strokeDasharray="5 4"
-              dot={{ r: 2.5, fill: "#f59e0b", strokeWidth: 0 }}
-              activeDot={{ r: 4, strokeWidth: 0 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="replies"
-              name="Replies"
-              stroke="#34d399"
-              strokeWidth={2.5}
-              dot={{ r: 3, fill: "#34d399", strokeWidth: 0 }}
-              activeDot={{ r: 5, strokeWidth: 0 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-          <div className="rounded-md border border-border/70 bg-muted/20 px-2 py-1.5">
-            <p className="text-muted-foreground">Total Sent (3d)</p>
-            <p className="text-sm font-semibold text-cyan-300">
-              {totalSent}
-            </p>
-          </div>
-          <div className="rounded-md border border-border/70 bg-muted/20 px-2 py-1.5">
-            <p className="text-muted-foreground">Total Replies (3d)</p>
-            <p className="text-sm font-semibold text-emerald-300">
-              {totalReplies}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ── Follow-up Effectiveness ─────────────────────────────────────────────────
-
-function FollowupChart({
-  data,
-}: {
-  data: EnrichedAnalytics["followupEffectiveness"];
-}) {
-  if (data.length === 0) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">
-            Follow-up Effectiveness
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
-            No follow-up data yet
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">
-            Follow-up Effectiveness
-          </CardTitle>
-          <span className="text-[11px] text-muted-foreground">
-            Bars = volume, line = reply rate
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-1">
-        <div className="h-[260px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={data}
-              margin={{ top: 8, right: 6, left: 6, bottom: 8 }}
-            >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-              interval={0}
-              tickMargin={8}
-            />
-            <YAxis
-              tick={{ fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-              width={34}
-              allowDecimals={false}
-            />
-            <YAxis
-              yAxisId="rate"
-              orientation="right"
-              tick={{ fontSize: 11 }}
-              tickLine={false}
-              axisLine={false}
-              width={40}
-              domain={[0, 100]}
-              tickFormatter={(value) => `${value}%`}
-            />
-            <Tooltip
-              contentStyle={CHART_TOOLTIP_STYLE}
-              formatter={(value, name) => {
-                if (name === "replyRate") return [`${value}%`, "Reply Rate"];
-                return [value, name === "sent" ? "Sent" : "Replies"];
-              }}
-            />
-            <Legend
-              verticalAlign="bottom"
-              align="center"
-              wrapperStyle={{ fontSize: "11px", paddingTop: "6px" }}
-            />
-            <Bar
-              dataKey="sent"
-              fill="#60a5fa"
-              radius={[4, 4, 0, 0]}
-              name="sent"
-              barSize={20}
-              maxBarSize={24}
-            />
-            <Bar
-              dataKey="replies"
-              fill="#22d3ee"
-              radius={[4, 4, 0, 0]}
-              name="replies"
-              barSize={20}
-              maxBarSize={24}
-            />
-            <Line
-              yAxisId="rate"
-              type="monotone"
-              dataKey="replyRate"
-              name="replyRate"
-              stroke="#34d399"
-              strokeWidth={2}
-              dot={{ r: 3, fill: "#34d399", strokeWidth: 0 }}
-              activeDot={{ r: 4, strokeWidth: 0 }}
-            />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ── Activity Feed ───────────────────────────────────────────────────────────
-
-function ActivityFeed({ events }: { events: ActivityEvent[] }) {
-  if (events.length === 0) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-32 flex items-center justify-center text-sm text-muted-foreground">
-            No activity yet
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const actionIcons: Record<string, React.ElementType> = {
-    send_email: Mail,
-    start: ArrowRight,
-    end: CheckCircle,
-    condition: Activity,
-    wait: Clock,
-  };
-
-  const actionColors: Record<string, string> = {
-    success: "text-foreground",
-    failed: "text-foreground",
-    skipped: "text-muted-foreground",
-  };
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1 scrollbar-none">
-          {events.slice(0, 30).map((event) => {
-            const Icon = actionIcons[event.action] || Activity;
-            const color = actionColors[event.status] || "text-muted-foreground";
-            const timeAgo = getRelativeTime(event.createdAt);
-            return (
-              <div
-                key={event.id}
-                className="flex items-start gap-2 py-1.5 text-xs border-b border-muted/50 last:border-0"
-              >
-                <Icon className={`h-3.5 w-3.5 mt-0.5 flex-shrink-0 ${color}`} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium truncate">
-                      {event.leadName}
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] px-1 py-0 border-0 ${
-                        event.status === "success"
-                          ? "bg-emerald-500/15 text-emerald-400"
-                          : event.status === "failed"
-                            ? "bg-red-500/15 text-red-400"
-                            : "bg-amber-500/15 text-amber-400"
-                      }`}
-                    >
-                      {event.status}
-                    </Badge>
-                  </div>
-                  <p className="text-muted-foreground truncate">
-                    {formatAction(event.action)} — {event.leadEmail}
-                  </p>
-                </div>
-                <span className="text-muted-foreground whitespace-nowrap flex-shrink-0">
-                  {timeAgo}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ── Lead Performance Table ──────────────────────────────────────────────────
-
-function LeadPerformanceTable({
-  leads,
-}: {
-  leads: EnrichedAnalytics["leadPerformance"];
-}) {
-  if (leads.length === 0) return null;
-
-  const statusColors: Record<string, string> = {
-    queued: "bg-zinc-500/15 text-zinc-400",
-    active: "bg-blue-500/15 text-blue-400",
-    waiting: "bg-amber-500/15 text-amber-400",
-    completed: "bg-emerald-500/15 text-emerald-400",
-    failed: "bg-red-500/15 text-red-400",
-    pending_review: "bg-violet-500/15 text-violet-400",
-  };
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium">
-          Lead Performance ({leads.length})
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs text-muted-foreground">
-                <th className="pb-2 font-medium">Lead</th>
-                <th className="pb-2 font-medium">Company</th>
-                <th className="pb-2 font-medium">Status</th>
-                <th className="pb-2 font-medium text-center">Replied</th>
-                <th className="pb-2 font-medium text-center">Follow-ups</th>
-                <th className="pb-2 font-medium">Last Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.slice(0, 20).map((lead) => (
-                <tr
-                  key={lead.campaignLeadId}
-                  className="border-b border-muted/50 last:border-0"
-                >
-                  <td className="py-2 pr-4">
-                    <div className="font-medium truncate max-w-[150px]">
-                      {lead.name}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate max-w-[150px]">
-                      {lead.email}
-                    </div>
-                  </td>
-                  <td className="py-2 pr-4 text-muted-foreground truncate max-w-[120px]">
-                    {lead.company || "—"}
-                  </td>
-                  <td className="py-2 pr-4">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[lead.status] || ""}`}
-                    >
-                      {lead.status}
-                    </span>
-                  </td>
-                  <td className="py-2 text-center">
-                    {lead.replied ? (
-                      <span className="text-foreground">✓</span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="py-2 text-center font-mono text-xs">
-                    {lead.followupCount}
-                  </td>
-                  <td className="py-2 text-xs text-muted-foreground whitespace-nowrap">
-                    {lead.lastActionTime
-                      ? getRelativeTime(lead.lastActionTime)
-                      : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {leads.length > 20 && (
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Showing 20 of {leads.length} leads
-            </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ── Overview Tab (main export) ──────────────────────────────────────────────
-
-interface OverviewTabProps {
-  analytics: EnrichedAnalytics;
-}
-
-export function OverviewTab({ analytics }: OverviewTabProps) {
-  const sendCoverage = analytics.totalLeads
-    ? (analytics.emailsSent / analytics.totalLeads) * 100
-    : 0;
-  const replyRateFromSent = analytics.emailsSent
-    ? (analytics.replies / analytics.emailsSent) * 100
-    : 0;
-  const completionRate = analytics.totalLeads
-    ? (analytics.completed / analytics.totalLeads) * 100
-    : 0;
-  const inProgressRate = analytics.totalLeads
-    ? (analytics.inProgress / analytics.totalLeads) * 100
-    : 0;
-
-  const stats = [
-    {
-      label: "Total Leads",
-      value: analytics.totalLeads,
-      icon: Users,
-      tone: "slate" as const,
-      subtext: analytics.totalLeads > 0 ? "Active campaign audience" : "No leads loaded yet",
-      progress: 100,
-      progressLabel: "Audience base",
-      className: "xl:col-span-1",
-    },
-    {
-      label: "Emails Sent",
-      value: analytics.emailsSent,
-      icon: Mail,
-      tone: "sky" as const,
-      subtext: analytics.emailsSkipped > 0 ? `${analytics.emailsSkipped} skipped` : "No skipped sends",
-      progress: sendCoverage,
-      progressLabel: `${sendCoverage.toFixed(0)}% of leads reached`,
-      className: "xl:col-span-1",
-    },
-    {
-      label: "Replies",
-      value: analytics.replies,
-      icon: Reply,
-      tone: "emerald" as const,
-      subtext: analytics.replies > 0 ? "Inbox activity detected" : "Waiting for first reply",
-      progress: replyRateFromSent,
-      progressLabel: `${replyRateFromSent.toFixed(1)}% of sent emails`,
-      className: "xl:col-span-1",
-    },
-    {
-      label: "Reply Rate",
-      value: `${analytics.replyRate}%`,
-      icon: TrendingUp,
-      tone: "emerald" as const,
-      emphasis: "hero" as const,
-      subtext: analytics.replyRate >= 10 ? "Above baseline performance" : "Room to improve response rate",
-      progress: analytics.replyRate,
-      progressLabel: "Replies per 100 emails sent",
-      className: "xl:col-span-2",
-    },
-    {
-      label: "Completed",
-      value: analytics.completed,
-      icon: CheckCircle,
-      tone: "sky" as const,
-      subtext: `${analytics.failed} failed`,
-      progress: completionRate,
-      progressLabel: `${completionRate.toFixed(0)}% campaign completion`,
-      className: "xl:col-span-1",
-    },
-    {
-      label: "In Progress",
-      value: analytics.inProgress,
-      icon: Clock,
-      tone: "amber" as const,
-      emphasis: "hero" as const,
-      subtext: `${analytics.totalFollowups} follow-ups`,
-      progress: inProgressRate,
-      progressLabel: `${inProgressRate.toFixed(0)}% still active`,
-      className: "xl:col-span-2",
-    },
-  ];
-
-  return (
-    <div className="p-6 space-y-6">
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8 gap-3">
-        {stats.map((stat) => (
-          <StatCard key={stat.label} {...stat} />
-        ))}
       </div>
-
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <PipelineFunnel
-          pipeline={analytics.pipeline}
-          total={analytics.totalLeads}
-        />
-        <SendVelocityChart dailyVolume={analytics.dailyVolume} />
-      </div>
-
-      {/* Follow-up + Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <FollowupChart data={analytics.followupEffectiveness} />
-        <ActivityFeed events={analytics.recentActivity} />
-      </div>
-
-      {/* Lead table */}
-      <LeadPerformanceTable leads={analytics.leadPerformance} />
     </div>
   );
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// ── KPI Grid ─────────────────────────────────────────────────────────────────
+
+function KpiCard({ label, value, sub, icon: Icon, accent }: {
+  label: string; value: string | number; sub?: string;
+  icon: React.ElementType; accent: string;
+}) {
+  return (
+    <div className="group relative flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] hover:bg-accent dark:hover:bg-white/[0.02] border border-border dark:border-white/[0.03] transition-colors">
+      <div className="absolute inset-0 bg-gradient-to-br from-card dark:from-white/[0.01] to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-center gap-3 mb-3">
+          <Icon className="h-6 w-6 shrink-0" style={{ color: accent }} />
+          <p className="text-3xl font-bold tracking-tight tabular-nums truncate">{value}</p>
+        </div>
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        {sub && <p className="text-xs text-muted-foreground/60 mt-1">{sub}</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── Funnel ───────────────────────────────────────────────────────────────────
+
+function PremiumFunnel({ pipeline, total }: { pipeline: EnrichedAnalytics["pipeline"]; total: number }) {
+  if (total === 0) return null;
+  const stages = pipeline.filter((p) => p.count > 0);
+  const max = stages[0]?.count || 1;
+
+  return (
+    <div className="relative rounded-2xl border border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-sm font-semibold">Pipeline Funnel</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{total} total leads</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        {stages.map((stage, i) => {
+          const pct = Math.round((stage.count / max) * 100);
+          const conv = i > 0 ? Math.round((stage.count / (stages[i - 1]?.count || 1)) * 100) : 100;
+          return (
+            <div key={stage.stage}>
+              <div className="flex items-center justify-between mb-1.5 text-xs">
+                <span className="font-medium">{stage.stage}</span>
+                <div className="flex items-center gap-2">
+                  {i > 0 && <span className="text-muted-foreground">{conv}% from prev</span>}
+                  <span className="font-semibold tabular-nums">{stage.count}</span>
+                </div>
+              </div>
+              <div className="h-2 rounded-full bg-muted dark:bg-white/5 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${pct}%`, background: stage.color, boxShadow: `0 0 8px ${stage.color}60` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Velocity Chart ───────────────────────────────────────────────────────────
+
+function VelocityChart({ dailyVolume }: { dailyVolume: EnrichedAnalytics["dailyVolume"] }) {
+  const hasData = dailyVolume.some((d) => d.sent > 0 || d.replies > 0);
+  const data = dailyVolume.map((d) => ({
+    ...d,
+    date: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  }));
+
+  return (
+    <div className="relative rounded-2xl border border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-sm font-semibold">Send Velocity</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Emails sent vs replies</p>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-cyan-400" />Sent</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-400" />Replies</span>
+        </div>
+      </div>
+      {!hasData ? (
+        <div className="h-48 flex flex-col items-center justify-center gap-2 text-center">
+          <Mail className="h-8 w-8 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">No send data yet</p>
+          <p className="text-xs text-muted-foreground/60">Activate your campaign to see trends appear here</p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={200}>
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id="sentGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="replyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#34d399" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#34d399" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={false} width={28} allowDecimals={false} />
+            <Tooltip contentStyle={TOOLTIP} />
+            <Area type="monotone" dataKey="sent" stroke="#22d3ee" strokeWidth={2} fill="url(#sentGrad)" dot={false} />
+            <Area type="monotone" dataKey="replies" stroke="#34d399" strokeWidth={2} fill="url(#replyGrad)" dot={false} />
+          </AreaChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+}
+
+// ── Follow-up Chart ──────────────────────────────────────────────────────────
+
+function FollowupChart({ data }: { data: EnrichedAnalytics["followupEffectiveness"] }) {
+  if (data.length === 0) {
+    return (
+      <div className="relative rounded-2xl border border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-5 sm:p-6">
+        <p className="text-sm font-semibold mb-1">Follow-up Effectiveness</p>
+        <p className="text-xs text-muted-foreground mb-4">Reply rate by sequence step</p>
+        <div className="h-48 flex flex-col items-center justify-center gap-2 text-center">
+          <Activity className="h-8 w-8 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">No follow-up data yet</p>
+          <p className="text-xs text-muted-foreground/60">Follow-up sequences will appear as they execute</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative rounded-2xl border border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-sm font-semibold">Follow-up Effectiveness</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Volume & reply rate by step</p>
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <ComposedChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+          <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={false} />
+          <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={false} width={28} allowDecimals={false} />
+          <YAxis yAxisId="rate" orientation="right" tick={{ fontSize: 10, fill: "#6b7280" }} tickLine={false} axisLine={false} width={36} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+          <Tooltip contentStyle={TOOLTIP} formatter={(v, name) => name === "replyRate" ? [`${v}%`, "Reply Rate"] : [v, name === "sent" ? "Sent" : "Replies"]} />
+          <Bar dataKey="sent" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={18} />
+          <Bar dataKey="replies" fill="#22d3ee" radius={[4, 4, 0, 0]} barSize={18} />
+          <Line yAxisId="rate" type="monotone" dataKey="replyRate" stroke="#34d399" strokeWidth={2}
+            dot={{ r: 3, fill: "#34d399", strokeWidth: 0 }}
+            style={{ filter: "drop-shadow(0 0 4px #34d39980)" }} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// ── Activity Feed ─────────────────────────────────────────────────────────────
+
+function ActivityFeed({ events }: { events: ActivityEvent[] }) {
+  const iconMap: Record<string, React.ElementType> = {
+    send_email: Mail, start: ArrowRight, end: CheckCircle, condition: Activity, wait: Clock,
+  };
+  const statusStyle: Record<string, string> = {
+    success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    failed: "bg-red-500/10 text-red-400 border-red-500/20",
+    skipped: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  };
+
+  return (
+    <div className="relative rounded-2xl border border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-sm font-semibold">Recent Activity</p>
+        <span className="text-[10px] text-muted-foreground bg-muted dark:bg-white/5 border border-border dark:border-white/8 rounded-full px-2 py-0.5">
+          {events.length} events
+        </span>
+      </div>
+      {events.length === 0 ? (
+        <div className="h-32 flex flex-col items-center justify-center gap-2 text-center">
+          <Activity className="h-7 w-7 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">No activity yet</p>
+          <p className="text-xs text-muted-foreground/60">Events will stream in as your campaign runs</p>
+        </div>
+      ) : (
+        <div className="space-y-0 max-h-[280px] overflow-y-auto scrollbar-none">
+          {events.slice(0, 30).map((event, i) => {
+            const Icon = iconMap[event.action] || Activity;
+            return (
+              <div key={event.id} className={`flex items-start gap-3 py-2.5 ${i < events.length - 1 ? "border-b border-border dark:border-white/5" : ""}`}>
+                <div className="h-6 w-6 rounded-md bg-muted dark:bg-white/5 flex items-center justify-center shrink-0 mt-0.5">
+                  <Icon className="h-3 w-3 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-xs font-medium truncate">{event.leadName}</span>
+                    <span className={`text-[9px] px-1.5 py-0 rounded-full border ${statusStyle[event.status] || "bg-muted dark:bg-white/5 text-muted-foreground border-border dark:border-white/10"}`}>
+                      {event.status}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground truncate">{formatAction(event.action)} · {event.leadEmail}</p>
+                </div>
+                <span className="text-[10px] text-muted-foreground/60 whitespace-nowrap shrink-0">{getRelativeTime(event.createdAt)}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Lead Table ────────────────────────────────────────────────────────────────
+
+function LeadTable({ leads }: { leads: EnrichedAnalytics["leadPerformance"] }) {
+  if (leads.length === 0) return null;
+
+  const statusStyle: Record<string, string> = {
+    queued: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+    active: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    waiting: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    completed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    failed: "bg-red-500/10 text-red-400 border-red-500/20",
+    pending_review: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+  };
+
+  return (
+    <div className="relative rounded-2xl border border-border dark:border-white/[0.03] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] overflow-hidden">
+      <div className="flex items-center justify-between p-6 border-b border-border dark:border-white/[0.03]">
+        <div>
+          <p className="text-sm font-semibold">Lead Performance</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{leads.length} contacts in sequence</p>
+        </div>
+        <span className="text-[10px] text-muted-foreground bg-muted dark:bg-white/5 border border-border dark:border-white/8 rounded-full px-2 py-0.5">
+          {leads.filter(l => l.replied).length} replied
+        </span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border dark:border-white/5">
+              {["Lead", "Company", "Status", "Replied", "Follow-ups", "Last Action"].map((h) => (
+                <th key={h} className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 first:pl-5 last:pr-5">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {leads.slice(0, 20).map((lead, i) => {
+              const initials = lead.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+              return (
+                <tr key={lead.campaignLeadId} className={`border-b border-border dark:border-white/[0.04] hover:bg-accent dark:hover:bg-white/[0.03] transition-colors ${i === leads.length - 1 ? "border-0" : ""}`}>
+                  <td className="px-4 py-3 first:pl-5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-cyan-500/30 to-emerald-500/20 border border-border dark:border-white/10 flex items-center justify-center shrink-0">
+                        <span className="text-[9px] font-bold text-cyan-300">{initials}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate max-w-[130px]">{lead.name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate max-w-[130px]">{lead.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground truncate max-w-[100px]">{lead.company || "—"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${statusStyle[lead.status] || "bg-muted dark:bg-white/5 text-muted-foreground border-border dark:border-white/10"}`}>
+                      {lead.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {lead.replied
+                      ? <span className="text-emerald-400 text-sm">✓</span>
+                      : <span className="text-muted-foreground/40 text-sm">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className="text-xs font-mono tabular-nums">{lead.followupCount}</span>
+                  </td>
+                  <td className="px-4 py-3 last:pr-5 text-[11px] text-muted-foreground whitespace-nowrap">
+                    {lead.lastActionTime ? getRelativeTime(lead.lastActionTime) : "—"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {leads.length > 20 && (
+          <p className="text-xs text-muted-foreground text-center py-3 border-t border-border dark:border-white/5">
+            Showing 20 of {leads.length} leads
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Overview Tab ──────────────────────────────────────────────────────────────
+
+export function OverviewTab({ analytics }: { analytics: EnrichedAnalytics }) {
+  const sendCoverage = analytics.totalLeads ? (analytics.emailsSent / analytics.totalLeads) * 100 : 0;
+  const replyRateNum = analytics.emailsSent ? (analytics.replies / analytics.emailsSent) * 100 : 0;
+  const completionRate = analytics.totalLeads ? (analytics.completed / analytics.totalLeads) * 100 : 0;
+
+  const kpis = [
+    { label: "Total Leads", value: analytics.totalLeads, sub: "Audience base", icon: Users, accent: "#94a3b8" },
+    { label: "Emails Sent", value: analytics.emailsSent, sub: `${sendCoverage.toFixed(0)}% reach`, icon: Mail, accent: "#22d3ee" },
+    { label: "Replies", value: analytics.replies, sub: analytics.replies > 0 ? "Inbox active" : "Awaiting first reply", icon: Reply, accent: "#34d399" },
+    { label: "In Progress", value: analytics.inProgress, sub: `${analytics.totalFollowups} follow-ups`, icon: Clock, accent: "#fbbf24" },
+    { label: "Completed", value: analytics.completed, sub: `${completionRate.toFixed(0)}% done`, icon: CheckCircle, accent: "#60a5fa" },
+    { label: "Reply Rate", value: `${analytics.replyRate}%`, sub: `${replyRateNum.toFixed(1)}% of sent`, icon: TrendingUp, accent: "#a78bfa" },
+  ];
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto">
+      <HeroBanner analytics={analytics} />
+
+      {/* KPI Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {kpis.map((k) => <KpiCard key={k.label} {...k} />)}
+      </div>
+
+      {/* Charts & Feed */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+        <div className="xl:col-span-2 space-y-6 lg:space-y-8">
+          <VelocityChart dailyVolume={analytics.dailyVolume} />
+          <FollowupChart data={analytics.followupEffectiveness} />
+        </div>
+        <div className="space-y-6 lg:space-y-8">
+          <PremiumFunnel pipeline={analytics.pipeline} total={analytics.totalLeads} />
+          <ActivityFeed events={analytics.recentActivity} />
+        </div>
+      </div>
+
+      <LeadTable leads={analytics.leadPerformance} />
+    </div>
+  );
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatAction(action: string): string {
-  switch (action) {
-    case "send_email":
-      return "Email sent";
-    case "start":
-      return "Workflow started";
-    case "end":
-      return "Workflow completed";
-    case "condition":
-      return "Condition checked";
-    case "wait":
-      return "Wait started";
-    default:
-      return action;
-  }
+  const map: Record<string, string> = {
+    send_email: "Email sent", start: "Workflow started", end: "Workflow completed",
+    condition: "Condition checked", wait: "Wait started",
+  };
+  return map[action] ?? action;
 }
 
 function getRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60_000);
-
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diffMs / 60_000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

@@ -28,9 +28,7 @@ export async function GET(
     return NextResponse.json({ messages, campaignLead });
   } catch (err) {
     console.error("Failed to fetch thread:", err);
-    return NextResponse.json(
-      { error: "Failed to fetch thread from Gmail" },
-      { status: 500 }
-    );
+    // Return empty messages instead of error - thread exists but we can't read it due to scope
+    return NextResponse.json({ messages: [], campaignLead, error: "Unable to fetch thread messages due to Gmail scope restrictions" });
   }
 }

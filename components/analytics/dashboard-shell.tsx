@@ -12,10 +12,8 @@ import {
   BarChart3,
   Shield,
   Radio,
-  RefreshCw,
   Loader2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 type Tab = "overview" | "compliance" | "deliverability";
 
@@ -32,72 +30,62 @@ interface DashboardShellProps {
 
 export function DashboardShell({ campaignId, campaignName }: DashboardShellProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const { analytics, compliance, deliverability, warmup, loading, refresh } =
+  const { analytics, compliance, deliverability, warmup, loading } =
     useAnalyticsDashboard(campaignId);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await refresh();
-    setRefreshing(false);
-  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground gap-2">
+      <div className="flex h-full items-center justify-center gap-3 text-muted-foreground">
         <Loader2 className="h-5 w-5 animate-spin" />
-        Loading analytics...
+        <p className="text-base">Loading...</p>
       </div>
     );
   }
 
+
   return (
     <div className="flex flex-col h-full overflow-hidden" data-lenis-prevent>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Campaign Analytics</h1>
-          {campaignName && (
-            <p className="text-xs text-muted-foreground mt-0.5">{campaignName}</p>
-          )}
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border dark:border-white/5 bg-background/80 backdrop-blur-sm shrink-0 gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="h-8 w-8  flex items-center justify-center shrink-0">
+            <BarChart3 className="h-4 w-4 text-foreground" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-sm font-semibold tracking-tight truncate">Campaign Intelligence</h1>
+            {campaignName && (
+              <p className="text-xs text-muted-foreground truncate">{campaignName}</p>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Tab buttons */}
-          <div className="flex bg-muted rounded-lg p-1">
+
+        <div className="flex items-center gap-3">
+          {/* Tab pills */}
+          <div className="flex items-center bg-muted dark:bg-white/[0.02] border border-border dark:border-white/[0.05] rounded-xl p-1 gap-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                  "flex items-center gap-2 px-3 h-7 text-xs font-semibold rounded-lg transition-all duration-200",
                   activeTab === tab.id
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-background shadow-sm dark:bg-white/[0.08] text-foreground ring-1 ring-black/20 dark:ring-white/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent dark:hover:bg-white/[0.04]"
                 )}
               >
                 <tab.icon className="h-3.5 w-3.5" />
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw
-              className={cn("h-4 w-4", refreshing && "animate-spin")}
-            />
-          </Button>
         </div>
       </div>
 
-      {/* Body: sidebar + main content */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Command Center sidebar */}
+      {/* Body */}
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
+        {/* Sidebar — hidden on mobile */}
         <div
-          className="w-64 border-r bg-muted/30 overflow-hidden flex-shrink-0"
+          className="hidden md:block w-56 lg:w-64 border-r border-border dark:border-white/5 bg-muted dark:bg-white/[0.02] overflow-y-auto flex-shrink-0 scrollbar-none"
           data-lenis-prevent
         >
           <CommandCenter

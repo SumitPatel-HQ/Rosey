@@ -37,7 +37,7 @@ export default function FeatureCard({ feature, side }: FeatureCardProps) {
 
 function FeatureText({ feature }: { feature: Feature }) {
    return (
-      <div className="flex flex-col gap-5 px-10 py-12">
+      <div className="flex flex-col gap-4 md:gap-5 px-5 md:px-10 py-8 md:py-12 text-center md:text-left">
          <span
             className="text-[0.8rem] text-[var(--text-tertiary)] font-medium tracking-[0.1em] font-[family-name:var(--font-body)]"
             style={{ fontFamily: "var(--font-body)" }}
@@ -46,20 +46,23 @@ function FeatureText({ feature }: { feature: Feature }) {
          </span>
 
          <h2
-            className="text-[clamp(2rem,4vw,3rem)] font-bold tracking-[-0.03em] text-[var(--text-primary)] leading-[1.1] font-[family-name:var(--font-heading)]"
+            className="text-[clamp(1.6rem,4vw,3rem)] font-bold tracking-[-0.03em] text-[var(--text-primary)] leading-[1.1] font-[family-name:var(--font-heading)]"
             style={{ fontFamily: "var(--font-heading)" }}
          >
             {feature.title}
          </h2>
 
          <p
-            className="text-[1.15rem] italic leading-[1.4]"
-            style={{ color: feature.accent }}
+            className="text-[1rem] md:text-[1.15rem] italic leading-[1.4] font-[family-name:var(--font-body)]"
+            style={{ color: feature.accent, fontFamily: "var(--font-body)" }}
          >
             {feature.subtitle}
          </p>
 
-         <p className="text-base text-[var(--text-secondary)] leading-[1.7] max-w-[380px]">
+         <p 
+            className="text-sm md:text-base text-[var(--text-secondary)] leading-[1.7] max-w-[380px] mx-auto md:mx-0 font-[family-name:var(--font-body)]"
+            style={{ fontFamily: "var(--font-body)" }}
+         >
             {feature.body}
          </p>
       </div>
@@ -73,7 +76,7 @@ function FeatureText({ feature }: { feature: Feature }) {
 function FeatureVisual({ feature }: { feature: Feature }) {
    return (
       <div className="flex justify-center items-center">
-         <div className="bg-[var(--bg-card)] border border-[var(--bg-border)] rounded-[24px] p-8 w-full max-w-[520px] min-h-[360px] flex flex-col justify-center">
+         <div className="bg-[var(--bg-card)] border border-[var(--bg-border)] rounded-[24px] p-5 md:p-8 w-full max-w-[340px] md:max-w-[520px] min-h-[260px] md:min-h-[360px] flex flex-col justify-center">
             {feature.visual === "campaign-brain" && <CampaignBrainVisual />}
             {feature.visual === "persona" && <PersonaVisual />}
             {feature.visual === "timing" && <TimingVisual />}

@@ -52,27 +52,27 @@ export function ProductCard({
   }
 
   return (
-    <div className="relative group">
-      <Link href={`/${id}`}>
-        <Card className="cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                  <Package className="h-4 w-4 text-primary" />
+    <div className="relative group h-full">
+      <Link href={`/${id}`} className="block h-full">
+        <Card className="cursor-pointer transition-all hover:shadow-md hover:border-primary/30 flex flex-col h-full py-5">
+          <CardHeader>
+            <div className="flex items-start justify-between w-full min-w-0">
+              <div className="flex flex-col w-full min-w-0 pr-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Package className="h-4 w-4 text-primary" />
+                  </div>
+                  <CardTitle className="text-base truncate">{name}</CardTitle>
                 </div>
-                <div>
-                  <CardTitle className="text-base">{name}</CardTitle>
-                  {description && (
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                      {description}
-                    </p>
-                  )}
-                </div>
+                {description && (
+                  <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
+                    {description}
+                  </p>
+                )}
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto pt-4">
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Users className="h-3.5 w-3.5" />
@@ -83,7 +83,7 @@ export function ProductCard({
                 <span>{campaignCount} campaigns</span>
               </div>
             </div>
-            <div className="mt-3">
+            <div className="mt-4">
               <Badge variant="secondary" className="text-xs font-normal">
                 Created {new Date(createdAt).toLocaleDateString()}
               </Badge>
@@ -98,7 +98,7 @@ export function ProductCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+              className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>

@@ -68,7 +68,7 @@ export default function DashboardShowcase() {
       <section
          ref={sectionRef}
          id="dashboard"
-         className="min-h-screen bg-[var(--bg-base)] px-16 py-24"
+         className="min-h-screen bg-[var(--bg-base)] px-5 sm:px-8 md:px-16 py-16 md:py-24"
       >
          {/* Header */}
          <div className="text-center mb-16">
@@ -86,7 +86,7 @@ export default function DashboardShowcase() {
          </div>
 
          {/* Cards grid */}
-         <div className="grid grid-cols-2 auto-rows-auto gap-6 max-w-[900px] mx-auto">
+         <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-auto gap-4 md:gap-6 max-w-[900px] mx-auto">
             {/* Card 1 — Campaign Overview (wide, spans 2 cols) */}
             <div
                className={`dash-card col-span-full ${cardClass}`}
@@ -98,7 +98,7 @@ export default function DashboardShowcase() {
                <div className="text-xs text-[var(--text-tertiary)] mb-5 tracking-[0.05em]">
                   Product Overview · my-b2b-saas
                </div>
-               <div className="grid grid-cols-4 gap-5">
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
                   {kpis.map((kpi) => (
                      <div key={kpi.label}>
                         <div

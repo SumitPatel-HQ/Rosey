@@ -38,14 +38,14 @@ export default function WorkflowVisual() {
       <div className="relative flex justify-center w-full">
          <div
             ref={containerRef}
-            className="w-full shadow-[0_30px_60px_rgba(0,0,0,0.50)] rounded-[24px] overflow-hidden border border-[var(--bg-border)]"
+            className="w-full h-[260px] md:h-auto shadow-[0_30px_60px_rgba(0,0,0,0.50)] rounded-[24px] overflow-hidden border border-[var(--bg-border)]"
          >
             <Image
                src="/workflow.png"
                alt="Rosey Workflow"
                width={1178}
                height={660}
-               className="w-full h-auto block"
+               className="w-full h-full object-cover object-left md:object-contain block"
             />
          </div>
       </div>

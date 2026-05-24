@@ -7,6 +7,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-base1: var(--base1);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -50,6 +51,7 @@
 
 :root {
   --radius: 0.625rem;
+  --base1: black;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -84,7 +86,8 @@
 }
 
 .dark {
-  --background: #1a1a1a;
+  --background: oklch(0 0 0);
+  --background2: oklch(1 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -157,6 +160,21 @@
   box-shadow: none !important;
 }
 
+/* React Flow Controls Dark Theme Styling */
+.react-flow {
+  --xy-controls-button-background-color: hsl(var(--card));
+  --xy-controls-button-background-color-hover: hsl(var(--muted));
+  --xy-controls-button-color: hsl(var(--card-foreground));
+  --xy-controls-button-color-hover: hsl(var(--foreground));
+  --xy-controls-button-border-color: hsl(var(--border));
+  --xy-controls-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --xy-controls-border-radius: 6px;
+}
+
+.react-flow__attribution {
+  display: none !important;
+}
+
 /* ═══════════════════════════════════════════
    LANDING PAGE — Design Tokens
    These are used exclusively by components/landing/* and rely on
@@ -166,6 +184,7 @@
 :root {
   /* Backgrounds */
   --bg-base: #1a1a1a;
+  --bg-base1: black;
   --bg-surface: #3E3636;
   --bg-card: #3E3636;
   --bg-elevated: #4A4040;

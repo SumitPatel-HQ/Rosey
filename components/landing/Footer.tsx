@@ -8,15 +8,15 @@ export default function Footer() {
        * Outer wrapper: same bg-surface as the card so the padding gap
        * around the floating card is invisible — no black bars.
        */
-      <div className="bg-[var(--bg-base)] px-6 md:px-10">
-         <footer className="relative bg-[var(--bg-surface)] border border-[var(--bg-border)] overflow-hidden rounded-t-[5rem] z-10">
+      <div className="bg-[var(--bg-base)] px-3 sm:px-6 md:px-10">
+         <footer className="relative bg-[var(--bg-surface)] border border-[var(--bg-border)] overflow-hidden rounded-t-[3rem] md:rounded-t-[5rem] z-10">
             {/* Top Accent Line */}
             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accent-primary)] to-transparent opacity-50" />
 
-            <div className="max-w-7xl mx-auto px-6 md:px-16 py-16 mt-8">
-               <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
-                  {/* Brand & Description */}
-                  <div className="md:col-span-2 space-y-6">
+            <div className="max-w-7xl mx-auto px-5 sm:px-8 md:px-16 py-12 md:py-16 mt-4 md:mt-8">
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-8">
+                  {/* Brand & Description — full-width on mobile */}
+                  <div className="col-span-2 md:col-span-2 space-y-6">
                      <a
                         href="#"
                         className="flex items-center gap-2 text-3xl font-semibold text-[var(--text-primary)] font-[family-name:var(--font-heading)]"

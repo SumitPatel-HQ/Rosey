@@ -153,7 +153,8 @@ export async function POST(request: NextRequest) {
     .select();
 
   if (error && error.message.includes("custom_fields")) {
-    const fallback = leadsToInsert.map(({ custom_fields: _cf, ...rest }) => rest);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const fallback = leadsToInsert.map(({ custom_fields, ...rest }) => rest);
     ({ data, error } = await supabase
       .from("leads")
       .upsert(fallback, { onConflict: "product_id,email" })

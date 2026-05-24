@@ -243,7 +243,7 @@ export function CommandCenter({
             {alerts.map((alert, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-md bg-muted/50"
+                className="flex items-center gap-2 text-xs py-2 px-3 rounded-lg bg-white/[0.02] border border-white/[0.03]"
               >
                 <alert.icon className={`h-3.5 w-3.5 flex-shrink-0 ${alert.color}`} />
                 <span className="text-foreground/80">{alert.text}</span>

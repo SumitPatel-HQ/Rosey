@@ -52,10 +52,10 @@ export function CampaignSelector() {
       }}
     >
       <SelectTrigger
-        className={`w-[200px] h-9 ${!isCampaignsSection ? "opacity-60" : ""}`}
+        className={`w-full sm:w-[150px] h-9 bg-muted dark:bg-white/[0.02] border border-border dark:border-white/[0.05] hover:bg-accent dark:hover:bg-white/[0.04] transition-colors ${!isCampaignsSection ? "opacity-60" : ""}`}
       >
-        <Megaphone className="h-4 w-4 text-muted-foreground shrink-0" />
-        <SelectValue placeholder="Select campaign" />
+          <Megaphone className="h-4 w-4 text-muted-foreground shrink-0" />
+        <SelectValue placeholder="Select campaign"  />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="__campaigns__">

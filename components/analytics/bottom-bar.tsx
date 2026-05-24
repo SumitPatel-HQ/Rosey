@@ -39,9 +39,9 @@ export function BottomBar({
     : deliverability?.currentDailyLimit || "Unlimited";
 
   return (
-    <div className="flex items-center gap-6 px-6 py-2 border-t bg-muted/30 text-xs text-muted-foreground">
+    <div className="flex items-center gap-4 md:gap-6 px-4 md:px-6 py-2 border-t border-border dark:border-white/[0.05] bg-card shadow-sm dark:shadow-none dark:bg-white/[0.01] text-[11px] md:text-xs text-muted-foreground overflow-x-auto whitespace-nowrap scrollbar-none shrink-0">
       {/* Compliance */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 shrink-0">
         <Shield
           className={`h-3.5 w-3.5 ${
             canSpamOk ? "text-foreground" : "text-muted-foreground"
@@ -53,7 +53,7 @@ export function BottomBar({
       <Separator />
 
       {/* Rate limit / budget */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 shrink-0">
         <Gauge className="h-3.5 w-3.5 text-muted-foreground" />
         <span>
           Daily budget: <strong className="text-foreground">{dailyLimit}</strong> emails
@@ -63,7 +63,7 @@ export function BottomBar({
       <Separator />
 
       {/* Warmup */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 shrink-0">
         <Radio
           className={`h-3.5 w-3.5 text-muted-foreground`}
         />
@@ -75,7 +75,7 @@ export function BottomBar({
       <Separator />
 
       {/* Bounce rate */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 shrink-0">
         <TrendingUp
           className={`h-3.5 w-3.5 ${
             deliverability && deliverability.bounceRate < 0.03
@@ -89,7 +89,8 @@ export function BottomBar({
       </div>
 
       {/* Spacer + reply rate */}
-      <div className="ml-auto flex items-center gap-1.5">
+      <div className="md:ml-auto flex items-center gap-1.5 shrink-0">
+        <Separator className="md:hidden" />
         <span>
           Reply rate:{" "}
           <strong className="text-foreground">
@@ -101,6 +102,6 @@ export function BottomBar({
   );
 }
 
-function Separator() {
-  return <div className="h-3 w-px bg-border" />;
+function Separator({ className }: { className?: string }) {
+  return <div className={`h-3 w-px bg-border dark:bg-white/[0.08] shrink-0 ${className || ""}`} />;
 }

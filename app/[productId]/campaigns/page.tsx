@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -27,15 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus, Megaphone, Loader2, MoreVertical, Trash2, Workflow } from "lucide-react";
+import { Plus, Megaphone, Loader2, Trash2, Workflow } from "lucide-react";
 import { toast } from "sonner";
 import type { Campaign } from "@/types";
 import { campaignTemplates, type CampaignTemplate } from "@/lib/templates";
@@ -135,7 +129,7 @@ export default function CampaignsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -144,7 +138,7 @@ export default function CampaignsPage() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               New Campaign
             </Button>
@@ -240,36 +234,28 @@ export default function CampaignsPage() {
               }
             >
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{campaign.name}</CardTitle>
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <CardTitle className="text-base truncate pt-0.5">{campaign.name}</CardTitle>
                     <Badge
-                      className={`text-xs ${statusColors[campaign.status] || ""}`}
+                      className={`text-xs shrink-0 ${statusColors[campaign.status] || ""}`}
                       variant="secondary"
                     >
                       {campaign.status}
                     </Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => setDeleteTarget(campaign)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteTarget(campaign);
+                    }}
+                    title="Delete campaign"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>

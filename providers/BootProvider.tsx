@@ -2,6 +2,13 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
+declare global {
+   interface Window {
+      ScrollTrigger?: { refresh: () => void };
+   }
+}
+
+
 interface BootContextType {
    isBooted: boolean;
 }
@@ -44,8 +51,8 @@ export default function BootProvider({ children }: { children: ReactNode }) {
             if (targetScrollY > 0) {
                window.scrollTo(0, targetScrollY);
                // Let ScrollTrigger know we jumped, if it's already registered globally
-               if (typeof window !== "undefined" && (window as any).ScrollTrigger) {
-                  (window as any).ScrollTrigger.refresh();
+               if (typeof window !== "undefined" && window.ScrollTrigger) {
+                  window.ScrollTrigger.refresh();
                }
             }
             // 5. Fade out the curtain smoothly

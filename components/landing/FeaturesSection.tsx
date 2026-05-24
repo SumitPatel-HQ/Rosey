@@ -192,10 +192,10 @@ export default function FeaturesSection() {
             >
                <div
                   ref={headerRef}
-                  className="absolute top-12 inset-x-0 flex flex-col items-center pointer-events-none"
+                  className="absolute top-8 md:top-12 inset-x-0 flex flex-col items-center pointer-events-none"
                >
                   <h2
-                     className="text-[clamp(1.4rem,3vw,2.3rem)] text-[var(--text-primary)] text-center tracking-[-0.02em] whitespace-nowrap px-4 uppercase"
+                     className="text-3xl sm:text-4xl lg:text-5xl text-[var(--text-primary)] text-center tracking-normal px-4 uppercase leading-none"
                      style={{ fontFamily: "var(--font-heading)" }}
                   >
                      How Rosey thinks, sends, and decides.
@@ -206,9 +206,9 @@ export default function FeaturesSection() {
                   <div
                      key={i}
                      ref={(el) => { featureRefs.current[i] = el; }}
-                     className="absolute inset-0 flex items-center justify-center pt-10"
+                     className="absolute inset-0 flex items-center justify-center pt-16 md:pt-10 px-4 md:px-0"
                   >
-                     <div className="grid grid-cols-[1.1fr_0.9fr] items-center gap-16 w-full max-w-[1200px]">
+                     <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] items-center gap-6 md:gap-16 w-full max-w-[1200px]">
                         <FeatureCard feature={feature} side="visual" />
                         <FeatureCard feature={feature} side="text" />
                      </div>
