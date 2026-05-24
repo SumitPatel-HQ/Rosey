@@ -372,7 +372,7 @@ function BuilderInner() {
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar — hidden on mobile, shown on md+ */}
-        <div className="hidden md:flex w-52 border-r bg-muted/30 p-3 shrink-0 flex-col gap-1">
+        <div className="hidden md:flex w-52 border-r bg-background p-3 shrink-0 flex-col gap-1">
           <Button
             variant="ghost"
             size="sm"
