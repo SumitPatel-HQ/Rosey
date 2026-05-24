@@ -52,11 +52,9 @@ next-env.d.ts
 .temp/
 
 
-README.md
-AGENTS.md
 # clerk configuration (can include secrets)
 /.clerk/
 
-test-apis.js
+
 
 
